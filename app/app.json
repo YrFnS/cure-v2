@@ -63,7 +63,11 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {}
-    }
+      "router": {},
+      "eas": {
+        "projectId": "ebbb1fa9-b639-40a9-98e9-d1eca2e36e6b"
+      }
+    },
+    "owner": "e2next"
   }
 }
