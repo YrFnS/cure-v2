@@ -14,7 +14,7 @@ import {
   Roles,
   verifyPassword,
 } from './common/auth';
-import { OtpStore } from './common/otp';
+import { LoginLimiter, OtpStore } from './common/otp';
 import { PrismaService } from './common/prisma.service';
 import { decodeDataUpload } from './common/storage';
 import { WhatsAppService } from './common/whatsapp.service';
@@ -58,6 +58,7 @@ function requirePassword(value: unknown) {
 @Controller()
 export class AuthController {
   private readonly otp = new OtpStore();
+  private readonly logins = new LoginLimiter();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -115,13 +116,17 @@ export class AuthController {
   async login(@Body() body: { identifier?: string; phone?: string; password?: string }) {
     const identifier = String(body.identifier ?? body.phone ?? '').trim();
     const phone = normalizeIraqiPhone(identifier);
+    const key = isIraqiMobile(phone) ? phone : identifier.toLowerCase();
+    this.logins.assertAllowed(key);
     const user = await this.prisma.user.findFirst({
       where: isIraqiMobile(phone) ? { phone } : { username: identifier },
       include: { patient: true, lab: true },
     });
     if (!user || !verifyPassword(String(body.password ?? ''), user.passwordHash, user.passwordSalt)) {
+      this.logins.fail(key);
       throw new UnauthorizedException('رقم الهاتف أو كلمة المرور غير صحيحة');
     }
+    this.logins.succeed(key);
     return {
       token: await this.openSession(user.id),
       role: user.role,
@@ -159,6 +164,7 @@ export class AuthController {
     const { hash, salt } = hashPassword(password);
     const user = await this.prisma.user.update({ where: { phone }, data: { passwordHash: hash, passwordSalt: salt } });
     await this.prisma.session.deleteMany({ where: { userId: user.id } });
+    this.logins.succeed(phone);
     return { message: 'Password updated successfully' };
   }
 

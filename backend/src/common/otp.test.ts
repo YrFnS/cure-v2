@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { isIraqiMobile, normalizeIraqiPhone } from './auth';
-import { OtpStore } from './otp';
+import { LoginLimiter, OtpStore } from './otp';
 
 test('otp: right code once, then gone', () => {
   const store = new OtpStore();
@@ -37,4 +37,17 @@ test('phone normalization', () => {
   assert.equal(normalizeIraqiPhone('7701234567'), '07701234567');
   assert.ok(isIraqiMobile('07701234567'));
   assert.ok(!isIraqiMobile('0770123'));
+});
+
+test('login limiter: locks after 10 failures, success clears, window expires', () => {
+  const limiter = new LoginLimiter();
+  for (let i = 0; i < 10; i++) {
+    limiter.assertAllowed('07700000000', 1000);
+    limiter.fail('07700000000', 1000);
+  }
+  assert.throws(() => limiter.assertAllowed('07700000000', 1000));
+  limiter.assertAllowed('07711111111', 1000); // other accounts unaffected
+  limiter.assertAllowed('07700000000', 1000 + 16 * 60 * 1000); // window passed
+  limiter.succeed('07700000000');
+  limiter.assertAllowed('07700000000', 1000);
 });
