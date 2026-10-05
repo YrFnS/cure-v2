@@ -68,7 +68,6 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   app.use(json({ limit: '20mb' })); // ID photos and result PDFs arrive as base64
-  app.use('/uploads', express.static(path.resolve('uploads')));
   app.use('/lab', express.static(path.resolve('public/lab')));
   app.setGlobalPrefix('api');
   app.useGlobalInterceptors(new Envelope());

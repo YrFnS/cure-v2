@@ -1,7 +1,6 @@
-import { BadRequestException, Body, Controller, Get, Patch, Post, UnauthorizedException, UseGuards, Headers } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Headers, Patch, Post, Query, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import crypto from 'node:crypto';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import {
   AllowUnverified,
   AuthGuard,
@@ -16,7 +15,8 @@ import {
 } from './common/auth';
 import { LoginLimiter, OtpStore } from './common/otp';
 import { PrismaService } from './common/prisma.service';
-import { decodeDataUpload } from './common/storage';
+import { signedFileUrl, verifySignedFile } from './common/signed-url';
+import { decodeDataUpload, readFile, saveFile } from './common/storage';
 import { WhatsAppService } from './common/whatsapp.service';
 
 const SESSION_DAYS = 30;
@@ -36,7 +36,7 @@ export function toPatientDto(patient: any, phone: string | null) {
     address: patient.address,
     phone: phone ?? '',
     emergencyContact: '',
-    profileImage: patient.profileImage ?? undefined,
+    profileImage: patient.profileImage ? signedFileUrl(patient.profileImage) : undefined,
     chronicConditions: [],
     allergies: [],
     verified: Boolean(patient.verifiedAt),
@@ -187,13 +187,22 @@ export class AuthController {
         `data:${body.profileImageMime ?? 'image/jpeg'};base64,${body.profileImageBase64}`,
         ['image/jpeg', 'image/png'],
       );
-      // ponytail: avatars are public under an unguessable name, like mrn-backend's /uploads.
-      const name = `${crypto.randomUUID()}${mimeType === 'image/png' ? '.png' : '.jpg'}`;
-      await fs.mkdir(path.resolve('uploads'), { recursive: true });
-      await fs.writeFile(path.resolve('uploads', name), buffer);
-      data.profileImage = `${(process.env.PUBLIC_URL ?? '').replace(/\/$/, '')}/uploads/${name}`;
+      data.profileImage = await saveFile('avatars', mimeType, buffer);
     }
     const patient = await this.prisma.patient.update({ where: { id: user.patientId! }, data, include: { user: true } });
     return toPatientDto(patient, patient.user.phone);
+  }
+
+  // Private files behind an expiring signed link (only avatars today). No session needed:
+  // the signature is the permission, and it is only issued to the photo's owner.
+  @Get('files')
+  async file(@Query('f') file: string, @Query('exp') exp: string, @Query('sig') sig: string, @Res() res: Response) {
+    const name = String(file ?? '');
+    if (!/^avatars\/[\w-]+\.(jpg|png)$/.test(name) || !verifySignedFile(name, exp, sig)) {
+      throw new ForbiddenException('Link expired or invalid');
+    }
+    res.setHeader('Content-Type', name.endsWith('.png') ? 'image/png' : 'image/jpeg');
+    res.setHeader('Cache-Control', 'private, max-age=86400');
+    res.send(await readFile(name));
   }
 }

@@ -177,7 +177,9 @@ reachable only through an authenticated route that checks the order belongs to t
 GET /api/reports/:id/file/result.pdf
 ```
 
-Profile photos are the exception: they are public under an unguessable UUID name under `/uploads`.
+Profile photos are stored there too. The app shows them through an expiring signed link
+(`/api/files?f=…&exp=…&sig=…`, valid 7 days, refreshed with the profile), so they work in an
+`<Image>` without an auth header. Set `URL_SIGNING_SECRET` in production.
 
 ## API
 
@@ -249,9 +251,14 @@ users and are scoped to their own lab.
 | GET | `/api/doctors` | `?search=&specialty=` |
 | GET | `/api/doctors/:id` | |
 
+### Files
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/api/files?f=&exp=&sig=` | Profile photo by signed link; no session |
+
 ### Static
 
 | Path | Notes |
 | --- | --- |
 | `/lab/` | Lab technician portal |
-| `/uploads/` | Public profile photos (UUID names) |
