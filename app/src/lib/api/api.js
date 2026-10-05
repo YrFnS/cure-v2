@@ -278,7 +278,10 @@ export async function request(path, options = {}, token) {
       }
     }
 
-    const shouldRetry = /pool timeout|fetch failed|network request failed|aborted|network timeout/i.test(message);
+    // Only GETs are retried: re-sending a POST could repeat its side effect (e.g. a slow AI call).
+    const shouldRetry =
+      getMethod(options) === 'GET' &&
+      /pool timeout|fetch failed|network request failed|aborted|network timeout/i.test(message);
 
     if (!shouldRetry) {
       if (cacheable && cacheKey) {
