@@ -7,7 +7,7 @@ export async function verifyNationalId(front, back) {
   return request('/verification/id', { method: 'POST', body: { front, back }, timeoutMs: 90000 }, token);
 }
 
-// Single-use code the lab tech enters/scans; valid 10 minutes.
+// Single-use upload link (QR/share) for the lab; valid 24 hours, one result.
 export async function createLabToken() {
   const token = await getToken();
   return request('/lab-token', { method: 'POST' }, token);

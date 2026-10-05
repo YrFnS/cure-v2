@@ -8,7 +8,7 @@ Same UI as the original Cure app. This is a rewrite: there is no Frappe and no l
 the database is the source of truth.
 
 - `app/` — Expo (React Native) patient app
-- `backend/` — NestJS + Prisma + MariaDB API, plus the lab technician portal
+- `backend/` — NestJS + Prisma + MariaDB API, plus the lab result upload page
 
 ## Flows
 
@@ -19,12 +19,16 @@ provider, the provider reads the fields and fills the profile, and the account b
 The gate is enforced server-side — `AuthGuard` returns `403 ID verification required` for any
 patient route not marked `@AllowUnverified()`. Hiding screens is not the control.
 
-**Lab results.** The patient opens the Lab Code screen and gets a single-use 6-character code
-(ambiguous characters removed), shown as a QR code and as text, valid for 10 minutes. The code
-carries no patient data. The lab technician signs in to the portal at `http://<server>/lab/`,
-enters the code, confirms the patient's name, and creates an order; later they upload the result
-PDF. The patient gets a notification and the result screen shows an AI summary plus four
-suggested questions they can tap.
+**Lab results (no lab login).** The patient opens the Lab Link screen and shares a single-use
+upload link (QR code or the system share sheet, e.g. WhatsApp). The link is
+`https://<server>/lab/?t=<code>`: a random 16-character code with no patient data, valid 24 hours
+and good for exactly one result. The lab opens it, sees the patient's name to confirm, types the
+lab name and test name, and uploads the PDF. The patient gets a notification and the result
+screen shows an AI summary plus four suggested questions they can tap.
+
+There is no record of which lab uploaded beyond the name typed on the page; anyone holding the
+link can upload once. Logged-in lab accounts (`/api/lab/orders`, `npm run lab:create`) are still
+in the backend but unused by the page, to be brought back later.
 
 That is not a chat. The backend only answers a question that is already in the suggestion list
 for that result; anything else is rejected. Answers are cached on the order, so a question is
@@ -53,7 +57,7 @@ app/                     Expo app
 backend/                 NestJS API
   prisma/schema.prisma   Database schema (source of truth)
   prisma/seed.ts         Directory and demo lab user
-  public/lab/index.html  Lab technician portal (plain HTML/JS)
+  public/lab/index.html  No-login lab upload page (plain HTML/JS)
   src/*.controller.ts    Controllers, registered in AppModule in src/main.ts
   src/ai/                AiService, the AiProvider interface, provider files
   src/common/            Auth guard, OTP store, Prisma service, storage, WhatsApp
@@ -102,7 +106,7 @@ bun run lint
 ## Demo server
 
 Runs on the E2NEXT demo VPS (`ssh e2next-demo`) at
-`https://cure-v2.148-230-111-16.sslip.io` (API under `/api`, lab portal at `/lab/`).
+`https://cure-v2.148-230-111-16.sslip.io` (API under `/api`, lab upload page at `/lab/?t=<code>`).
 
 - Checkout `~/cure-v2`, backend `.env` in `~/cure-v2/backend/.env` (mode 600, holds the DB,
   Gemini, UltraMSG and seed lab credentials).
@@ -213,11 +217,13 @@ users and are scoped to their own lab.
 
 | Method | Path | Role | Notes |
 | --- | --- | --- | --- |
-| POST | `/api/lab-token` | patient | New single-use code, valid 10 minutes |
-| GET | `/api/lab/tokens/:code` | lab | Looks up the patient so the tech can confirm the name |
-| POST | `/api/lab/orders` | lab | Consumes the code, creates the order |
-| GET | `/api/lab/orders` | lab | This lab's orders only |
-| POST | `/api/lab/orders/:id/result` | lab | Uploads the result PDF, notifies the patient |
+| POST | `/api/lab-token` | patient | New single-use upload link (`code`, `url`), valid 24 hours |
+| GET | `/api/lab/link/:code` | none | Patient name for the upload page |
+| POST | `/api/lab/link/:code` | none | `labName`, `testName`, `pdf`; one result, then the link is spent |
+| GET | `/api/lab/tokens/:code` | lab | Logged-in lab flow (dormant) |
+| POST | `/api/lab/orders` | lab | Logged-in lab flow (dormant) |
+| GET | `/api/lab/orders` | lab | Logged-in lab flow (dormant) |
+| POST | `/api/lab/orders/:id/result` | lab | Logged-in lab flow (dormant) |
 
 ### Reports
 
@@ -261,4 +267,4 @@ users and are scoped to their own lab.
 
 | Path | Notes |
 | --- | --- |
-| `/lab/` | Lab technician portal |
+| `/lab/?t=<code>` | No-login result upload page |

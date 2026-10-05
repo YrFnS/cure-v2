@@ -68,7 +68,7 @@ model Lab {
   orders   LabOrder[]
 }
 
-// A single-use code the patient shows the lab tech; maps to nothing once used.
+// A single-use code the patient shares with the lab (as a link/QR); maps to nothing once used.
 model LabToken {
   code      String   @id
   patientId String
@@ -85,11 +85,13 @@ model LabOrder {
   id            String      @id @default(cuid())
   patientId     String
   patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  labId         String
-  lab           Lab         @relation(fields: [labId], references: [id])
+  // Set when a logged-in lab created the order (dormant for now: labs upload via the patient's link).
+  labId         String?
+  lab           Lab?        @relation(fields: [labId], references: [id])
+  labName       String? // typed by whoever uploaded through the patient's link
   testName      String
   status        OrderStatus @default(PENDING)
-  createdBy     String // lab user id
+  createdBy     String? // lab user id (logged-in lab flow only)
   uploadedBy    String?
   pdfPath       String?
   summary       String?     @db.Text

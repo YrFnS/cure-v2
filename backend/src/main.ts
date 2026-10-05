@@ -20,7 +20,7 @@ import { AuthGuard } from './common/auth';
 import { PrismaService } from './common/prisma.service';
 import { WhatsAppService } from './common/whatsapp.service';
 import { DirectoryController } from './directory.controller';
-import { LabController } from './lab.controller';
+import { LabController, LabLinkController } from './lab.controller';
 import { NotificationsController } from './notifications.controller';
 import { ReportsController } from './reports.controller';
 import { VerificationController } from './verification.controller';
@@ -55,6 +55,7 @@ class ErrorFilter implements ExceptionFilter {
     AuthController,
     VerificationController,
     LabController,
+    LabLinkController,
     ReportsController,
     NotificationsController,
     DirectoryController,
