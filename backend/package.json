@@ -11,7 +11,8 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/src/main",
-    "test": "node --no-experimental-strip-types --require ts-node/register/transpile-only --test src/common/*.test.ts"
+    "test": "node --no-experimental-strip-types --require ts-node/register/transpile-only --test src/common/*.test.ts",
+    "lab:create": "ts-node prisma/create-lab.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

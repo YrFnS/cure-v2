@@ -33,6 +33,14 @@ answered once and re-reads are free.
 **Directory.** Hospitals, labs and doctors are display-only. There is no booking. Rows come from
 `backend/prisma/seed.ts` or the database directly.
 
+Create a lab and its login (the password is generated and printed once):
+
+```bash
+cd backend
+npm run lab:create -- --name "مختبر النور" --username alnoor --location "بغداد" --phone "+964 770 000 0000"
+npm run lab:create -- --lab-id <id> --username alnoor2   # another login for the same lab
+```
+
 ## Repo layout
 
 ```
