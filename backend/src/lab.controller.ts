@@ -20,8 +20,18 @@ const TOKEN_TTL_MS = 10 * 60 * 1000;
 const TOKEN_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
 
 // Generate the summary + tappable questions once per result; patients reuse the cached copy.
-export async function ensureInsight(prisma: PrismaService, ai: AiService, order: any) {
-  if (order.status !== 'READY' || !order.pdfPath || order.summary) return order;
+// ponytail: in-process dedupe, enough for one server process.
+const inFlight = new Map<string, Promise<any>>();
+
+export function ensureInsight(prisma: PrismaService, ai: AiService, order: any): Promise<any> {
+  if (order.status !== 'READY' || !order.pdfPath || order.summary) return Promise.resolve(order);
+  if (!inFlight.has(order.id)) {
+    inFlight.set(order.id, generateInsight(prisma, ai, order).finally(() => inFlight.delete(order.id)));
+  }
+  return inFlight.get(order.id)!;
+}
+
+async function generateInsight(prisma: PrismaService, ai: AiService, order: any) {
   const pdf = await readFile(order.pdfPath);
   const insight = await ai.explainResult({ mimeType: 'application/pdf', base64: pdf.toString('base64') }, order.testName);
   return prisma.labOrder.update({
