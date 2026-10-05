@@ -91,6 +91,29 @@ bun run typecheck
 bun run lint
 ```
 
+## Demo server
+
+Runs on the E2NEXT demo VPS (`ssh e2next-demo`) at
+`https://cure-v2.148-230-111-16.sslip.io` (API under `/api`, lab portal at `/lab/`).
+
+- Checkout `~/cure-v2`, backend `.env` in `~/cure-v2/backend/.env` (mode 600, holds the DB,
+  Gemini, UltraMSG and seed lab credentials).
+- Own Node 24 in `~/cure-v2/.node` (Prisma 7 does not support the system Node 23; the other
+  apps on the box keep using it).
+- Database `cure_v2` on the server's MariaDB; pm2 process `cure-v2` on port 3020; nginx vhost
+  `cure-v2.148-230-111-16.sslip.io` with a Let's Encrypt certificate (`proxy_read_timeout 180s`,
+  `client_max_body_size 25m`).
+
+Update (the repo is public, so the server pulls without GitHub credentials):
+
+```bash
+ssh e2next-demo
+cd ~/cure-v2 && git pull --ff-only
+cd backend && export PATH=$HOME/cure-v2/.node/bin:$PATH
+npm ci && npx prisma generate && npx prisma db push && npm run build
+pm2 restart cure-v2
+```
+
 ## AI provider
 
 Every AI call goes through `AiService` in `backend/src/ai/ai.service.ts`. The provider and model
