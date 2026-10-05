@@ -1,0 +1,136 @@
+// Cure v2 backend schema. No Frappe: this database is the source of truth.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Role {
+  PATIENT
+  LAB
+  ADMIN
+}
+
+model User {
+  id           String    @id @default(cuid())
+  role         Role      @default(PATIENT)
+  phone        String?   @unique // patients log in by Iraqi phone
+  username     String?   @unique // lab and admin users log in by username
+  passwordHash String
+  passwordSalt String
+  labId        String?
+  lab          Lab?      @relation(fields: [labId], references: [id])
+  patient      Patient?
+  sessions     Session[]
+  createdAt    DateTime  @default(now())
+}
+
+model Session {
+  token     String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// Filled from the national ID scan. Empty until the patient verifies.
+model Patient {
+  id            String         @id @default(cuid())
+  userId        String         @unique
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mrn           String         @unique
+  nameAr        String         @default("")
+  name          String         @default("")
+  nationalId    String?        @unique
+  dateOfBirth   String         @default("")
+  gender        String         @default("")
+  bloodType     String         @default("")
+  address       String         @default("")
+  profileImage  String?
+  verifiedAt    DateTime?
+  idFrontPath   String?
+  idBackPath    String?
+  labOrders     LabOrder[]
+  notifications Notification[]
+  pushTokens    PushToken[]
+  createdAt     DateTime       @default(now())
+}
+
+model Lab {
+  id       String     @id @default(cuid())
+  name     String
+  location String     @default("")
+  phone    String     @default("")
+  users    User[]
+  orders   LabOrder[]
+}
+
+// A single-use code the patient shows the lab tech; maps to nothing once used.
+model LabToken {
+  code      String   @id
+  patientId String
+  expiresAt DateTime
+  usedAt    DateTime?
+}
+
+enum OrderStatus {
+  PENDING
+  READY
+}
+
+model LabOrder {
+  id            String      @id @default(cuid())
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  labId         String
+  lab           Lab         @relation(fields: [labId], references: [id])
+  testName      String
+  status        OrderStatus @default(PENDING)
+  createdBy     String // lab user id
+  uploadedBy    String?
+  pdfPath       String?
+  summary       String?     @db.Text
+  suggestions   Json? // string[] of questions the patient can tap
+  answers       Json? // { [question]: answer } cache
+  createdAt     DateTime    @default(now())
+  readyAt       DateTime?
+}
+
+// Display-only directory (no booking).
+model Hospital {
+  id       String @id @default(cuid())
+  name     String
+  location String @default("")
+  phone    String @default("")
+}
+
+model Doctor {
+  id          String  @id @default(cuid())
+  nameAr      String
+  name        String  @default("")
+  specialtyAr String  @default("")
+  specialty   String  @default("")
+  phone       String  @default("")
+  photo       String?
+  hospitalId  String?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  titleAr   String
+  messageAr String
+  actionId  String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model PushToken {
+  token     String  @id
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}

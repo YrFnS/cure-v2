@@ -1,0 +1,24 @@
+services:
+  db:
+    image: mariadb:11
+    container_name: cure-v2-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:?set in .env}
+      MARIADB_USER: ${DB_USER:?set in .env}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?set in .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set in .env}
+    ports:
+      # Bind to localhost only — the DB must never be reachable from outside this server.
+      - '127.0.0.1:${DB_PORT:-3306}:3306'
+    volumes:
+      - cure_v2_mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  cure_v2_mariadb_data:

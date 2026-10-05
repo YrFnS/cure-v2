@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>بوابة المختبر - كيور</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Same palette as the app's tailwind `medical` theme. */
+    :root { --bg:#F8FAFC; --card:#FFFFFF; --border:#E2E8F0; --primary:#0891B2; --primaryDark:#0E7490;
+            --text:#0F172A; --muted:#475569; --ok:#059669; --okBg:#D1FAE5; --warn:#D97706; --warnBg:#FEF3C7; --err:#DC2626; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:'Cairo',sans-serif; background:var(--bg); color:var(--text); }
+    header { background:linear-gradient(135deg,#0891B2,#0E7490,#164E63); color:#fff; padding:20px 16px; }
+    header h1 { margin:0; font-size:22px; }
+    header p { margin:4px 0 0; opacity:.9; }
+    main { max-width:760px; margin:0 auto; padding:16px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px; }
+    h2 { margin:0 0 12px; font-size:18px; }
+    label { display:block; font-weight:600; margin:10px 0 6px; }
+    input { width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:12px; font:inherit; background:#F8FAFC; }
+    button { font:inherit; font-weight:700; border:0; border-radius:12px; padding:12px 18px; cursor:pointer; background:var(--primary); color:#fff; }
+    button.secondary { background:#F1F5F9; color:var(--text); }
+    button:disabled { opacity:.5; cursor:default; }
+    .row { display:flex; gap:10px; align-items:end; flex-wrap:wrap; }
+    .row > * { flex:1; min-width:140px; }
+    .msg { margin-top:10px; font-weight:600; }
+    .msg.err { color:var(--err); } .msg.ok { color:var(--ok); }
+    .patient { background:#CFFAFE; border-radius:12px; padding:12px; margin-top:12px; }
+    table { width:100%; border-collapse:collapse; }
+    td, th { text-align:right; padding:10px 6px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .badge { padding:2px 10px; border-radius:999px; font-size:13px; font-weight:700; }
+    .badge.PENDING { background:var(--warnBg); color:var(--warn); } .badge.READY { background:var(--okBg); color:var(--ok); }
+    .hidden { display:none; }
+    .code-input { letter-spacing:6px; text-transform:uppercase; font-size:22px; text-align:center; direction:ltr; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>بوابة المختبر</h1>
+    <p id="who">كيور</p>
+  </header>
+  <main>
+    <section id="login" class="card">
+      <h2>تسجيل الدخول</h2>
+      <label for="username">اسم المستخدم</label>
+      <input id="username" autocomplete="username" />
+      <label for="password">كلمة المرور</label>
+      <input id="password" type="password" autocomplete="current-password" />
+      <div style="margin-top:14px"><button id="loginBtn">دخول</button></div>
+      <div id="loginMsg" class="msg err"></div>
+    </section>
+
+    <div id="app" class="hidden">
+      <section class="card">
+        <h2>طلب تحليل جديد</h2>
+        <label for="code">رمز المريض (من تطبيق المريض)</label>
+        <div class="row">
+          <input id="code" class="code-input" maxlength="6" autocomplete="off" />
+          <button id="lookupBtn" style="flex:0">تحقق</button>
+        </div>
+        <div id="patientBox" class="patient hidden">
+          <div>المريض: <strong id="patientName"></strong></div>
+          <div>تاريخ الميلاد: <span id="patientDob"></span></div>
+          <label for="testName">اسم التحليل</label>
+          <div class="row">
+            <input id="testName" placeholder="مثال: CBC" />
+            <button id="createBtn" style="flex:0">إنشاء الطلب</button>
+          </div>
+        </div>
+        <div id="orderMsg" class="msg"></div>
+      </section>
+
+      <section class="card">
+        <div class="row" style="align-items:center">
+          <h2 style="margin:0">طلبات المختبر</h2>
+          <div style="flex:0;display:flex;gap:8px">
+            <button class="secondary" id="refreshBtn">تحديث</button>
+            <button class="secondary" id="logoutBtn">خروج</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>المريض</th><th>التحليل</th><th>الحالة</th><th>النتيجة (PDF)</th></tr></thead>
+          <tbody id="orders"></tbody>
+        </table>
+        <div id="listMsg" class="msg"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const API = location.origin + '/api';
+    const $ = id => document.getElementById(id);
+    let token = null;
+    try { token = sessionStorage.getItem('labToken'); } catch {}
+
+    async function api(path, options = {}) {
+      const res = await fetch(API + path, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+        body: options.body ? JSON.stringify(options.body) : undefined,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401 && token) { logout(); }
+      if (!res.ok || data.success === false) {
+        const m = data.message;
+        throw new Error(Array.isArray(m) ? m.join('، ') : (m || 'حدث خطأ'));
+      }
+      return data.data;
+    }
+
+    function show(msgEl, text, ok) { msgEl.textContent = text; msgEl.className = 'msg ' + (ok ? 'ok' : 'err'); }
+
+    function logout() {
+      token = null;
+      try { sessionStorage.removeItem('labToken'); } catch {}
+      $('app').classList.add('hidden'); $('login').classList.remove('hidden'); $('who').textContent = 'كيور';
+    }
+
+    function enter(labName) {
+      $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+      if (labName) $('who').textContent = labName;
+      loadOrders();
+    }
+
+    $('loginBtn').onclick = async () => {
+      try {
+        const result = await api('/auth/login', { method: 'POST', body: { identifier: $('username').value.trim(), password: $('password').value } });
+        if (result.role !== 'LAB') throw new Error('هذا الحساب ليس حساب مختبر');
+        token = result.token;
+        try { sessionStorage.setItem('labToken', token); sessionStorage.setItem('labName', result.lab?.name || ''); } catch {}
+        enter(result.lab?.name);
+      } catch (e) { show($('loginMsg'), e.message); }
+    };
+
+    $('logoutBtn').onclick = async () => { try { await api('/auth/logout', { method: 'POST' }); } catch {} logout(); };
+
+    $('lookupBtn').onclick = async () => {
+      $('patientBox').classList.add('hidden'); $('orderMsg').textContent = '';
+      try {
+        const p = await api('/lab/tokens/' + encodeURIComponent($('code').value.trim().toUpperCase()));
+        $('patientName').textContent = p.patientName; $('patientDob').textContent = p.dateOfBirth || '-';
+        $('patientBox').classList.remove('hidden'); $('testName').focus();
+      } catch (e) { show($('orderMsg'), e.message); }
+    };
+    $('code').addEventListener('keydown', e => { if (e.key === 'Enter') $('lookupBtn').click(); });
+
+    $('createBtn').onclick = async () => {
+      try {
+        const order = await api('/lab/orders', { method: 'POST', body: { code: $('code').value.trim(), testName: $('testName').value.trim() } });
+        show($('orderMsg'), 'تم إنشاء الطلب: ' + order.testName + ' — ' + order.patientName, true);
+        $('code').value = ''; $('testName').value = ''; $('patientBox').classList.add('hidden');
+        loadOrders();
+      } catch (e) { show($('orderMsg'), e.message); }
+    };
+
+    const toDataUrl = file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    async function upload(orderId, input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.type !== 'application/pdf') { show($('listMsg'), 'الملف يجب أن يكون PDF'); return; }
+      input.disabled = true;
+      try {
+        await api('/lab/orders/' + orderId + '/result', { method: 'POST', body: { pdf: await toDataUrl(file) } });
+        show($('listMsg'), 'تم رفع النتيجة وإشعار المريض', true);
+        loadOrders();
+      } catch (e) { show($('listMsg'), e.message); input.disabled = false; }
+    }
+
+    async function loadOrders() {
+      try {
+        const orders = await api('/lab/orders');
+        const body = $('orders');
+        body.textContent = '';
+        for (const o of orders) {
+          const tr = document.createElement('tr');
+          const cells = [o.patientName, o.testName];
+          for (const text of cells) { const td = document.createElement('td'); td.textContent = text; tr.appendChild(td); }
+          const status = document.createElement('td');
+          status.innerHTML = '<span class="badge ' + o.status + '">' + (o.status === 'READY' ? 'جاهز' : 'قيد الانتظار') + '</span>';
+          tr.appendChild(status);
+          const action = document.createElement('td');
+          if (o.status === 'PENDING') {
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = 'application/pdf';
+            input.onchange = () => upload(o.id, input);
+            action.appendChild(input);
+          } else {
+            action.textContent = new Date(o.readyAt).toLocaleString('ar-IQ');
+          }
+          tr.appendChild(action);
+          body.appendChild(tr);
+        }
+        if (orders.length === 0) $('listMsg').textContent = 'لا توجد طلبات بعد';
+      } catch (e) { show($('listMsg'), e.message); }
+    }
+
+    $('refreshBtn').onclick = loadOrders;
+    if (token) { let n = ''; try { n = sessionStorage.getItem('labName'); } catch {} enter(n); }
+  </script>
+</body>
+</html>
