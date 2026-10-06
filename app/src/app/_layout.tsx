@@ -21,7 +21,7 @@ try {
   // KeyboardProvider not available - will use fallback
   console.warn('react-native-keyboard-controller not available, using fallback');
 }
-import { I18nManager } from 'react-native';
+import { I18nManager, Platform } from 'react-native';
 import { useAuthStore } from '@/lib/auth-store';
 import { useSettingsStore, useTranslation } from '@/lib/settings-store';
 import {
@@ -48,6 +48,13 @@ SplashScreen.preventAutoHideAsync();
 // Keep layout direction fixed (LTR) regardless of device language.
 I18nManager.allowRTL(false);
 I18nManager.forceRTL(false);
+
+// NetInfo's web probe is a no-cache HEAD to '/' that only accepts 200; browsers surface the
+// 304 revalidation, so the web build looked offline and React Query paused every request.
+// Any HTTP answer means the network is up.
+if (Platform.OS === 'web') {
+  NetInfo.configure({ reachabilityTest: async () => true });
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
