@@ -74,6 +74,7 @@ async function writeNativeItem(name: string, value: string): Promise<void> {
 
 export const secureStorage = {
   getItem: async (name: string): Promise<string | null> => {
+    // web: token in localStorage; acceptable for demo, use httpOnly cookie before a public web launch
     if (Platform.OS === 'web') return AsyncStorage.getItem(name);
 
     try {

@@ -21,7 +21,8 @@ Notifications.setNotificationHandler({
 });
 
 async function registerForPushNotifications() {
-  if (!Device.isDevice) return null;
+  // No Expo push tokens in the browser; the web build simply has no push.
+  if (Platform.OS === 'web' || !Device.isDevice) return null;
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
