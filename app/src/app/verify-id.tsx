@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, ActivityIndicator, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -25,12 +25,18 @@ export default function VerifyIdScreen() {
 
   const capture = async (side: Side) => {
     setError('');
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      setError(ar ? 'يجب السماح باستخدام الكاميرا لتصوير البطاقة' : 'Camera permission is needed to scan the card');
-      return;
+    // Web has no in-app camera: a file chooser (phones offer their camera there) needs no permission.
+    if (Platform.OS !== 'web') {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        setError(ar ? 'يجب السماح باستخدام الكاميرا لتصوير البطاقة' : 'Camera permission is needed to scan the card');
+        return;
+      }
     }
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true, allowsEditing: true });
+    const options = { quality: 0.6, base64: true, allowsEditing: Platform.OS !== 'web' };
+    const result = Platform.OS === 'web'
+      ? await ImagePicker.launchImageLibraryAsync({ ...options, mediaTypes: ['images'] })
+      : await ImagePicker.launchCameraAsync(options);
     const asset = result.canceled ? null : result.assets[0];
     if (!asset?.base64) return;
     const mime = asset.mimeType === 'image/png' ? 'image/png' : 'image/jpeg';
