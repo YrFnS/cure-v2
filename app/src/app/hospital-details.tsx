@@ -5,8 +5,8 @@ import {
   ScrollView,
   Pressable,
   Linking,
-  Alert,
 } from 'react-native';
+import { showAlert } from '@/lib/alert';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import {
   Building2,
@@ -98,7 +98,7 @@ export default function HospitalDetailsScreen() {
       return;
     }
     Linking.openURL(`tel:${phoneNumber}`).catch(() => {
-      Alert.alert('خطأ', 'تعذر فتح تطبيق الهاتف');
+      showAlert('خطأ', 'تعذر فتح تطبيق الهاتف');
     });
   };
 

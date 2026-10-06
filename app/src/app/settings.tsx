@@ -5,9 +5,9 @@ import {
   ScrollView,
   Pressable,
   Switch,
-  Alert,
   Linking,
 } from 'react-native';
+import { showAlert } from '@/lib/alert';
 import { useRouter, Stack } from 'expo-router';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
@@ -49,10 +49,10 @@ export default function SettingsScreen() {
     ? `${t.version} ${appVersion} (${buildVersion})`
     : `${t.version} ${appVersion}`;
   const openLegalLink = (url: string) =>
-    Linking.openURL(url).catch(() => Alert.alert(t.error, t.connectionFailed));
+    Linking.openURL(url).catch(() => showAlert(t.error, t.connectionFailed));
 
   const handleLogout = () => {
-    Alert.alert(
+    showAlert(
       t.logout,
       t.logoutConfirm,
       [
@@ -126,7 +126,7 @@ export default function SettingsScreen() {
       value: versionText,
       color: '#64748B',
       bg: '#F1F5F9',
-      onPress: () => Alert.alert(t.aboutApp, t.aboutAppBody.replace('{version}', versionText)),
+      onPress: () => showAlert(t.aboutApp, t.aboutAppBody.replace('{version}', versionText)),
       showArrow: true,
     },
   ];

@@ -5,8 +5,8 @@ import {
   ScrollView,
   Pressable,
   Image,
-  Alert,
 } from 'react-native';
+import { showAlert } from '@/lib/alert';
 import { useRouter, Stack } from 'expo-router';
 import {
   User,
@@ -68,10 +68,10 @@ export default function EditProfileScreen() {
         profileImage: profileImageBase64 ? undefined : profileImage,
       });
       updatePatient({ profileImage: updated.profileImage ?? profileImage });
-      Alert.alert('تم', 'تم تحديث الصورة الشخصية بنجاح');
+      showAlert('تم', 'تم تحديث الصورة الشخصية بنجاح');
       router.back();
     } catch (error) {
-      Alert.alert('خطأ', error instanceof Error ? error.message : 'تعذر تحديث الصورة');
+      showAlert('خطأ', error instanceof Error ? error.message : 'تعذر تحديث الصورة');
     } finally {
       setIsSaving(false);
     }

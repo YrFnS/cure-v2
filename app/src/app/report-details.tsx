@@ -1,14 +1,16 @@
+/// <reference lib="dom" />
 import React from 'react';
 import {
   View,
   Text,
   ScrollView,
   Pressable,
-  Alert,
   Modal,
   Image,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import { showAlert } from '@/lib/alert';
 import { useLocalSearchParams, Stack, useFocusEffect } from 'expo-router';
 import {
   Calendar,
@@ -238,8 +240,44 @@ export default function ReportDetailsScreen() {
 
   const { icon: Icon, color, bg } = getReportIcon(report.type);
 
+  // No FileSystem/Sharing on web: download the private file through the browser, and print
+  // the generated report from a hidden iframe (expo-print's web path prints the whole page).
+  const handleWebDownload = async () => {
+    if (report.fileUrl) {
+      const token = await getToken();
+      const response = await fetch(report.fileUrl, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = reportFileName || `report-${report.id}`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      return;
+    }
+    const html = buildReportPdfHtml();
+    if (!html) {
+      showAlert('خطأ', 'تعذر إنشاء التقرير');
+      return;
+    }
+    const frame = document.createElement('iframe');
+    frame.style.display = 'none';
+    frame.srcdoc = html;
+    frame.onload = () => {
+      frame.contentWindow?.print();
+      setTimeout(() => frame.remove(), 60_000);
+    };
+    document.body.appendChild(frame);
+  };
+
   const handleDownload = async () => {
     try {
+      if (Platform.OS === 'web') {
+        await handleWebDownload();
+        return;
+      }
       if (report.fileUrl) {
         const fallbackName = `report-${report.id}`;
         const downloadName = reportFileName || fallbackName;
@@ -260,7 +298,7 @@ export default function ReportDetailsScreen() {
 
       const html = buildReportPdfHtml();
       if (!html) {
-        Alert.alert('خطأ', 'تعذر إنشاء التقرير');
+        showAlert('خطأ', 'تعذر إنشاء التقرير');
         return;
       }
       const pdfFile = await Print.printToFileAsync({ html });
@@ -274,7 +312,7 @@ export default function ReportDetailsScreen() {
         return;
       }
     } catch {
-      Alert.alert('خطأ', 'حدث خطأ أثناء التحميل');
+      showAlert('خطأ', 'حدث خطأ أثناء التحميل');
     }
   };
 
