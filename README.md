@@ -108,6 +108,11 @@ bun run lint
 Runs on the E2NEXT demo VPS (`ssh e2next-demo`) at
 `https://cure-v2.148-230-111-16.sslip.io` (API under `/api`, lab upload page at `/lab/?t=<code>`).
 
+Patients use the mobile app. The web only accepts PDFs through patient-shared lab links;
+there is no deployed patient web app or web login. The root redirects to `/lab/`, preserving
+the query string, and other non-API/non-lab paths return 404. Do not publish an Expo web export
+to this host. Deployment checks are in [docs/readiness.md](docs/readiness.md).
+
 - Checkout `~/cure-v2`, backend `.env` in `~/cure-v2/backend/.env` (mode 600, holds the DB,
   Gemini, UltraMSG and seed lab credentials).
 - Own Node 24 in `~/cure-v2/.node` (Prisma 7 does not support the system Node 23; the other
