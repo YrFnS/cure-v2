@@ -26,5 +26,12 @@
         "image": "sdk-54"
       }
     }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal"
+      }
+    }
   }
 }
