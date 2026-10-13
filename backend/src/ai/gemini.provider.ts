@@ -13,7 +13,7 @@ export class GeminiProvider implements AiProvider {
     if (!this.apiKey || !this.model) {
       throw new Error('Gemini is not configured (GEMINI_API_KEY / AI_MODEL)');
     }
-    // The free tier often answers 503 "high demand" / 429: retry once, then try the fallback model.
+    // The free tier often answers 503 "high demand" / 429 or times out: retry once, then try the fallback model.
     const models = [this.model, this.fallbackModel].filter(Boolean);
     let lastError: unknown;
     for (const model of models) {
@@ -47,6 +47,9 @@ export class GeminiProvider implements AiProvider {
         generationConfig: { responseMimeType: 'application/json' },
       }),
       signal: AbortSignal.timeout(60_000),
+    }).catch(error => {
+      // An overloaded model can also just hang: treat a timeout like a 503 so the fallback model gets a turn.
+      throw error?.name === 'TimeoutError' ? new BusyError(`Gemini ${model}: timeout`) : error;
     });
 
     const body: any = await response.json().catch(() => null);
