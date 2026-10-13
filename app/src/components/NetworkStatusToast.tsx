@@ -3,12 +3,13 @@ import { Animated, Easing, Text } from 'react-native';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WifiOff } from 'lucide-react-native';
-import { useSettingsStore } from '@/lib/settings-store';
+import { useSettingsStore, useTranslation } from '@/lib/settings-store';
 import { useReducedMotionEnabled } from '@/lib/use-reduced-motion';
 
 export default function NetworkStatusToast() {
   const insets = useSafeAreaInsets();
   const theme = useSettingsStore(s => s.theme);
+  const { t } = useTranslation();
   const netInfo = useNetInfo();
   const visible = netInfo.isConnected === false || netInfo.isInternetReachable === false;
   // Reanimated 3.19 crashes this root-mounted view in SDK 54 release builds.
@@ -77,7 +78,7 @@ export default function NetworkStatusToast() {
           color: theme === 'dark' ? '#FECACA' : '#B91C1C',
         }}
       >
-        لا يوجد اتصال بالانترنت. يتم عرض آخر البيانات المحفوظة.
+        {t.offlineShowingSaved}
       </Text>
     </Animated.View>
   );

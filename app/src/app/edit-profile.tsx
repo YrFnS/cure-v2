@@ -68,10 +68,10 @@ export default function EditProfileScreen() {
         profileImage: profileImageBase64 ? undefined : profileImage,
       });
       updatePatient({ profileImage: updated.profileImage ?? profileImage });
-      showAlert('تم', 'تم تحديث الصورة الشخصية بنجاح');
+      showAlert(t.done, t.photoUpdated);
       router.back();
     } catch (error) {
-      showAlert('خطأ', error instanceof Error ? error.message : 'تعذر تحديث الصورة');
+      showAlert(t.errorTitle, error instanceof Error ? error.message : t.photoUpdateFailed);
     } finally {
       setIsSaving(false);
     }
@@ -80,22 +80,22 @@ export default function EditProfileScreen() {
   // Patient info fields (read-only display)
   const infoFields = [
     {
-      label: 'الاسم الكامل',
+      label: t.fullName,
       value: patient?.nameAr || (patient as any)?.fullNameAr || patient?.name || (patient as any)?.fullName || '--',
       icon: User,
     },
     {
-      label: 'تاريخ الميلاد',
-      value: patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString('ar-IQ') : '--',
+      label: t.dateOfBirth,
+      value: patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString(t.dateLocale) : '--',
       icon: Calendar,
     },
     {
-      label: 'الجنس',
-      value: patient?.gender === 'male' ? 'ذكر' : patient?.gender === 'female' ? 'أنثى' : '--',
+      label: t.gender,
+      value: patient?.gender === 'male' ? t.male : patient?.gender === 'female' ? t.female : '--',
       icon: UserCircle,
     },
     {
-      label: 'فصيلة الدم',
+      label: t.bloodType,
       value: patient?.bloodType || '--',
       icon: Droplet,
     },
@@ -105,22 +105,22 @@ export default function EditProfileScreen() {
       icon: Heart,
     },
     {
-      label: 'رقم الهاتف',
+      label: t.phone,
       value: patient?.phone || '--',
       icon: Phone,
     },
     {
-      label: 'البريد الإلكتروني',
+      label: t.email,
       value: patient?.email || '--',
       icon: Mail,
     },
     {
-      label: 'العنوان',
+      label: t.address,
       value: patient?.address || '--',
       icon: MapPin,
     },
     {
-      label: 'جهة اتصال الطوارئ',
+      label: t.emergencyContact,
       value:
         patient?.emergencyContact ||
         (patient as any)?.emergencyPhone ||
@@ -136,7 +136,7 @@ export default function EditProfileScreen() {
     <View className="flex-1 bg-white dark:bg-slate-900">
       <Stack.Screen
         options={{
-          title: 'تعديل الملف الشخصي',
+          title: t.editProfile,
           headerStyle: { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' },
           headerTintColor: isDark ? '#E2E8F0' : '#0F172A',
           headerTitleStyle: { fontFamily: 'Cairo_700Bold', fontSize: 18, color: isDark ? '#E2E8F0' : '#0F172A' },
@@ -185,7 +185,7 @@ export default function EditProfileScreen() {
             style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 16 }}
             className="text-teal-600 dark:text-teal-300 mt-4"
           >
-            اضغط على أيقونة الكاميرا لتغيير الصورة
+            {t.tapCameraToChangePhoto}
           </Text>
         </FadeInDownView>
 
@@ -198,7 +198,7 @@ export default function EditProfileScreen() {
             style={{ fontFamily: 'Cairo_700Bold', fontSize: 18 }}
             className="text-gray-900 dark:text-slate-100 text-right mb-4"
           >
-            المعلومات الشخصية
+            {t.personalInfo}
           </Text>
 
           <View className="bg-gray-50 dark:bg-slate-800 rounded-2xl p-4">
@@ -240,8 +240,7 @@ export default function EditProfileScreen() {
             style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 14, lineHeight: 24 }}
             className="text-amber-700 dark:text-amber-200 text-right"
           >
-            ملاحظة: المعلومات الشخصية للقراءة فقط ولا يمكن تعديلها من التطبيق.
-            لتحديث أي معلومات، يرجى مراجعة قسم الاستقبال في المستشفى.
+            {t.profileReadOnlyNote}
           </Text>
         </FadeInDownView>
 
@@ -266,7 +265,7 @@ export default function EditProfileScreen() {
               style={{ fontFamily: 'Cairo_700Bold', fontSize: 18 }}
               className="text-white"
             >
-              {isSaving ? 'جارٍ الحفظ...' : 'حفظ الصورة'}
+              {isSaving ? t.saving : t.savePhoto}
             </Text>
           </Pressable>
 
@@ -278,7 +277,7 @@ export default function EditProfileScreen() {
               style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 16 }}
               className="text-gray-700 dark:text-slate-200"
             >
-              إلغاء
+              {t.cancel}
             </Text>
           </Pressable>
         </FadeInDownView>

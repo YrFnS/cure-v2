@@ -124,15 +124,15 @@ export default function ReportDetailsScreen() {
     const hospitalName = report.hospitalName || '';
     const hospitalLocation = report.hospitalLocation || '';
     const hospitalRows = [
-      hospitalName ? `<div class="row"><span class="label">المستشفى: </span><span class="value">${escapeHtml(hospitalName)}</span></div>` : '',
-      hospitalLocation ? `<div class="row"><span class="label">الموقع: </span><span class="value">${escapeHtml(hospitalLocation)}</span></div>` : '',
+      hospitalName ? `<div class="row"><span class="label">${t.hospital}: </span><span class="value">${escapeHtml(hospitalName)}</span></div>` : '',
+      hospitalLocation ? `<div class="row"><span class="label">${t.location}: </span><span class="value">${escapeHtml(hospitalLocation)}</span></div>` : '',
     ].join('');
-    const details = report.detailsAr || report.details || 'لا توجد تفاصيل إضافية.';
+    const details = report.detailsAr || report.details || t.noExtraDetails;
     const reportStatus = report.status === 'ready' ? t.ready : t.pending;
     const reportType = getReportTypeLabel(report.type);
 
     return `
-      <html lang="ar" dir="rtl">
+      <html lang="${t.htmlLang}" dir="${t.htmlDir}">
         <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -149,25 +149,25 @@ export default function ReportDetailsScreen() {
         </head>
         <body>
           <div class="header">
-            <p class="title">${escapeHtml(report.titleAr || report.title || 'تقرير')}</p>
+            <p class="title">${escapeHtml(report.titleAr || report.title || t.report)}</p>
             <p class="subtitle">MRN: ${escapeHtml(patient?.mrn || '-')}</p>
           </div>
           <div class="section">
-            <div class="row"><span class="label">نوع التقرير: </span><span class="value">${escapeHtml(reportType)}</span></div>
-            <div class="row"><span class="label">الحالة: </span><span class="value">${escapeHtml(reportStatus)}</span></div>
-            <div class="row"><span class="label">التاريخ: </span><span class="value">${escapeHtml(report.date || '-')}</span></div>
-            <div class="row"><span class="label">المريض: </span><span class="value">${escapeHtml(patientName)}</span></div>
-            <div class="row"><span class="label">الطبيب: </span><span class="value">${escapeHtml(doctorName)}</span></div>
+            <div class="row"><span class="label">${t.reportType}: </span><span class="value">${escapeHtml(reportType)}</span></div>
+            <div class="row"><span class="label">${t.status}: </span><span class="value">${escapeHtml(reportStatus)}</span></div>
+            <div class="row"><span class="label">${t.date}: </span><span class="value">${escapeHtml(report.date || '-')}</span></div>
+            <div class="row"><span class="label">${t.patient}: </span><span class="value">${escapeHtml(patientName)}</span></div>
+            <div class="row"><span class="label">${t.doctor}: </span><span class="value">${escapeHtml(doctorName)}</span></div>
             ${hospitalRows}
           </div>
           <div class="section">
-            <div class="row"><span class="label">ملخص التقرير</span></div>
+            <div class="row"><span class="label">${t.reportSummary}</span></div>
             <div class="row value">${escapeHtml(details)}</div>
           </div>
         </body>
       </html>
     `;
-  }, [getReportTypeLabel, patient?.mrn, patient?.name, patient?.nameAr, report, t.pending, t.ready]);
+  }, [getReportTypeLabel, patient?.mrn, patient?.name, patient?.nameAr, report, t]);
 
   if (isLoading) {
     return (
@@ -228,7 +228,7 @@ export default function ReportDetailsScreen() {
           style={{ fontFamily: 'Cairo_500Medium' }}
           className="text-medical-textSecondary dark:text-slate-400"
         >
-          التقرير غير موجود
+          {t.reportNotFound}
         </Text>
       </View>
     );
@@ -259,7 +259,7 @@ export default function ReportDetailsScreen() {
     }
     const html = buildReportPdfHtml();
     if (!html) {
-      showAlert('خطأ', 'تعذر إنشاء التقرير');
+      showAlert(t.errorTitle, t.reportCreateFailed);
       return;
     }
     const frame = document.createElement('iframe');
@@ -298,7 +298,7 @@ export default function ReportDetailsScreen() {
 
       const html = buildReportPdfHtml();
       if (!html) {
-        showAlert('خطأ', 'تعذر إنشاء التقرير');
+        showAlert(t.errorTitle, t.reportCreateFailed);
         return;
       }
       const pdfFile = await Print.printToFileAsync({ html });
@@ -306,13 +306,13 @@ export default function ReportDetailsScreen() {
       if (isAvailable) {
         await Sharing.shareAsync(pdfFile.uri, {
           mimeType: 'application/pdf',
-          dialogTitle: 'تحميل التقرير',
+          dialogTitle: t.downloadReport,
           UTI: 'com.adobe.pdf',
         });
         return;
       }
     } catch {
-      showAlert('خطأ', 'حدث خطأ أثناء التحميل');
+      showAlert(t.errorTitle, t.downloadFailed);
     }
   };
 
@@ -333,14 +333,14 @@ export default function ReportDetailsScreen() {
           <View className="bg-white dark:bg-slate-900 rounded-3xl p-5 w-full max-w-[360px]">
             <View className="flex-row-reverse items-center justify-between mb-3">
               <Text style={{ fontFamily: 'Cairo_700Bold', fontSize: 18 }} className="text-gray-900 dark:text-slate-100 text-right">
-                تفاصيل التقرير
+                {t.reportDetails}
               </Text>
               <Pressable
                 onPress={() => setShowDetails(false)}
                 className="px-3 py-2 rounded-xl bg-gray-100 dark:bg-slate-800"
               >
                 <Text style={{ fontFamily: 'Cairo_600SemiBold' }} className="text-gray-600 dark:text-slate-300">
-                  إغلاق
+                  {t.close}
                 </Text>
               </Pressable>
             </View>
@@ -357,7 +357,7 @@ export default function ReportDetailsScreen() {
                     style={{ fontFamily: 'Cairo_500Medium' }}
                     className="text-gray-600 dark:text-slate-300 text-right mt-2"
                   >
-                    الملف: {reportFileName}
+                    {t.file}: {reportFileName}
                   </Text>
                 </View>
               ) : null}
@@ -370,46 +370,46 @@ export default function ReportDetailsScreen() {
 
               <View className="bg-gray-50 dark:bg-slate-800 rounded-2xl p-3 mb-3">
                 <Text style={{ fontFamily: 'Cairo_500Medium' }} className="text-gray-700 dark:text-slate-200 text-right">
-                  النوع: {getReportTypeLabel(report.type)}
+                  {t.type}: {getReportTypeLabel(report.type)}
                 </Text>
                 <Text style={{ fontFamily: 'Cairo_500Medium' }} className="text-gray-700 dark:text-slate-200 mt-1 text-right">
-                  التاريخ: {report.date}
+                  {t.date}: {report.date}
                 </Text>
                 <Text style={{ fontFamily: 'Cairo_500Medium' }} className="text-gray-700 dark:text-slate-200 mt-1 text-right">
-                  الحالة: {report.status === 'ready' ? t.ready : t.pending}
+                  {t.status}: {report.status === 'ready' ? t.ready : t.pending}
                 </Text>
               </View>
 
               <View className="bg-gray-50 dark:bg-slate-800 rounded-2xl p-3 mb-3">
                 <Text style={{ fontFamily: 'Cairo_500Medium' }} className="text-gray-700 dark:text-slate-200 text-right">
-                  المريض: {report.patientNameAr || patient?.nameAr || patient?.name || '-'}
+                  {t.patient}: {report.patientNameAr || patient?.nameAr || patient?.name || '-'}
                 </Text>
                 <Text style={{ fontFamily: 'Cairo_500Medium' }} className="text-gray-700 dark:text-slate-200 mt-1 text-right">
-                  الطبيب: {report.doctorNameAr || '-'}
+                  {t.doctor}: {report.doctorNameAr || '-'}
                 </Text>
                 {report.hospitalName ? (
                   <Text style={{ fontFamily: 'Cairo_500Medium' }} className="text-gray-700 dark:text-slate-200 mt-1 text-right">
-                    المستشفى: {report.hospitalName}
+                    {t.hospital}: {report.hospitalName}
                   </Text>
                 ) : null}
                 {report.hospitalLocation ? (
                   <Text style={{ fontFamily: 'Cairo_500Medium' }} className="text-gray-700 dark:text-slate-200 mt-1 text-right">
-                    الموقع: {report.hospitalLocation}
+                    {t.location}: {report.hospitalLocation}
                   </Text>
                 ) : null}
                 {hasReportFile ? (
                   <Text style={{ fontFamily: 'Cairo_500Medium' }} className="text-gray-700 dark:text-slate-200 mt-1 text-right">
-                    الملف: {reportFileName}
+                    {t.file}: {reportFileName}
                   </Text>
                 ) : null}
               </View>
 
               <View className="bg-gray-50 dark:bg-slate-800 rounded-2xl p-3">
                 <Text style={{ fontFamily: 'Cairo_600SemiBold' }} className="text-gray-900 dark:text-slate-100 mb-2 text-right">
-                  ملخص التقرير
+                  {t.reportSummary}
                 </Text>
                 <Text style={{ fontFamily: 'Cairo_400Regular' }} className="text-gray-600 dark:text-slate-300 leading-6 text-right">
-                  {report.detailsAr || report.details || 'لا توجد تفاصيل إضافية.'}
+                  {report.detailsAr || report.details || t.noExtraDetails}
                 </Text>
               </View>
             </ScrollView>
@@ -506,7 +506,7 @@ export default function ReportDetailsScreen() {
               style={{ fontFamily: 'Cairo_400Regular', fontSize: 16 }}
               className="text-medical-textSecondary dark:text-slate-400 mx-3"
             >
-              نوع التقرير
+              {t.reportType}
             </Text>
             <View
               className="w-10 h-10 rounded-xl items-center justify-center"
@@ -569,7 +569,7 @@ export default function ReportDetailsScreen() {
               style={{ fontFamily: 'Cairo_700Bold', fontSize: 20 }}
               className="text-medical-text dark:text-slate-100 text-right mb-3"
             >
-              ملخص التقرير
+              {t.reportSummary}
             </Text>
             <Text
               style={{ fontFamily: 'Cairo_400Regular', fontSize: 16 }}
@@ -688,7 +688,7 @@ export default function ReportDetailsScreen() {
                 className="text-white mr-2"
                 numberOfLines={1}
               >
-                {hasImageReport ? 'تحميل الصورة' : t.downloadReport}
+                {hasImageReport ? t.downloadImage : t.downloadReport}
               </Text>
               <Download size={20} color="#FFFFFF" />
             </Pressable>
@@ -716,7 +716,7 @@ export default function ReportDetailsScreen() {
               style={{ fontFamily: 'Cairo_500Medium' }}
               className="text-amber-700 dark:text-amber-200 text-center"
             >
-              التقرير قيد الإعداد، سيتم إشعارك عند جاهزيته
+              {t.reportBeingPrepared}
             </Text>
           </FadeInDownView>
         )}

@@ -40,7 +40,7 @@ export default function DoctorDetailsScreen() {
       <View className="flex-1 bg-medical-bg dark:bg-slate-900">
         <Stack.Screen
           options={{
-            title: 'تفاصيل الطبيب',
+            title: t.doctorDetails,
             headerStyle: { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' },
             headerTintColor: isDark ? '#E2E8F0' : '#0F172A',
             headerTitleStyle: { fontFamily: 'Cairo_600SemiBold', color: isDark ? '#E2E8F0' : '#0F172A' },
@@ -83,7 +83,7 @@ export default function DoctorDetailsScreen() {
           style={{ fontFamily: 'Cairo_500Medium' }}
           className="text-medical-textSecondary dark:text-slate-400"
         >
-          الطبيب غير موجود
+          {t.doctorNotFound}
         </Text>
       </View>
     );
@@ -96,13 +96,13 @@ export default function DoctorDetailsScreen() {
   };
 
   const dayLabels: Record<string, string> = {
-    Sunday: 'الأحد',
-    Monday: 'الاثنين',
-    Tuesday: 'الثلاثاء',
-    Wednesday: 'الأربعاء',
-    Thursday: 'الخميس',
-    Friday: 'الجمعة',
-    Saturday: 'السبت',
+    Sunday: t.sunday,
+    Monday: t.monday,
+    Tuesday: t.tuesday,
+    Wednesday: t.wednesday,
+    Thursday: t.thursday,
+    Friday: t.friday,
+    Saturday: t.saturday,
   };
   const availableDays = Array.isArray(doctor.availableDays)
     ? doctor.availableDays
@@ -114,7 +114,7 @@ export default function DoctorDetailsScreen() {
     <View className="flex-1 bg-medical-bg dark:bg-slate-900">
       <Stack.Screen
         options={{
-          title: 'تفاصيل الطبيب',
+          title: t.doctorDetails,
           headerStyle: { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' },
           headerTintColor: isDark ? '#E2E8F0' : '#0F172A',
           headerTitleStyle: { fontFamily: 'Cairo_600SemiBold', color: isDark ? '#E2E8F0' : '#0F172A' },
@@ -203,7 +203,7 @@ export default function DoctorDetailsScreen() {
               style={{ fontFamily: 'Cairo_600SemiBold' }}
               className="text-medical-text dark:text-slate-100 text-lg"
             >
-              أيام العمل
+              {t.workingDays}
             </Text>
             <View style={{ marginLeft: 8 }}>
               <Clock size={20} color="#0891B2" />
@@ -230,7 +230,7 @@ export default function DoctorDetailsScreen() {
                   style={{ fontFamily: 'Cairo_500Medium' }}
                   className="text-gray-500 dark:text-slate-300 text-sm"
                 >
-                  لا توجد بيانات
+                  {t.noData}
                 </Text>
               </View>
             )}

@@ -75,7 +75,7 @@ export default function ResetPasswordScreen() {
   const handleReset = async () => {
     const otp = normalizeArabicDigits(code).replace(/\D/g, '');
     if (otp.length !== 6) {
-      setError(isAr ? 'رمز التحقق يجب أن يكون 6 أرقام' : 'The code must be 6 digits');
+      setError(t.codeMustBe6Digits);
       return;
     }
     if (newPassword.length < 6) {
@@ -153,7 +153,7 @@ export default function ResetPasswordScreen() {
           >
             <KeyRound size={48} color="#FFFFFF" />
             <Text style={{ fontFamily: 'Cairo_700Bold', fontSize: 26 }} className="text-white text-center mt-3">
-              {isAr ? 'استعادة كلمة المرور' : 'Reset Password'}
+              {t.resetPassword}
             </Text>
           </LinearGradient>
 
@@ -166,20 +166,20 @@ export default function ResetPasswordScreen() {
               className="text-slate-500 dark:text-slate-400 text-center mb-6"
             >
               {step === 'phone'
-                ? (isAr ? 'أدخل رقم هاتفك المسجل في المستشفى وسنرسل لك رمزاً عبر واتساب' : 'Enter the phone number registered at the hospital and we will send a code by WhatsApp')
-                : (isAr ? `أدخل الرمز المرسل إلى ${normalizedPhone} عبر واتساب` : `Enter the code sent to ${normalizedPhone} by WhatsApp`)}
+                ? t.resetSubtitle
+                : t.resetCodeSentTo.replace('{phone}', normalizedPhone)}
             </Text>
 
             {step === 'phone' ? (
               <View className="mb-6">
                 <Text style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }} className={labelClass}>
-                  {isAr ? 'رقم الهاتف' : 'Phone Number'}
+                  {t.phoneNumber}
                 </Text>
                 <View className="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                   <TextInput
                     value={phone}
                     onChangeText={text => setPhone(normalizeArabicDigits(text).replace(/\D/g, '').slice(0, 14))}
-                    placeholder={isAr ? 'مثال: 0770xxxxxxx' : 'e.g. 0770xxxxxxx'}
+                    placeholder={t.phonePlaceholder}
                     placeholderTextColor="#94A3B8"
                     keyboardType="phone-pad"
                     maxLength={14}
@@ -192,7 +192,7 @@ export default function ResetPasswordScreen() {
               <View>
                 <View className="mb-4">
                   <Text style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }} className={labelClass}>
-                    {isAr ? 'رمز التحقق' : 'Verification Code'}
+                    {t.verificationCode}
                   </Text>
                   <View className="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                     <TextInput
@@ -209,8 +209,8 @@ export default function ResetPasswordScreen() {
                     />
                   </View>
                 </View>
-                {passwordField(isAr ? 'كلمة المرور الجديدة' : 'New Password', newPassword, setNewPassword)}
-                {passwordField(isAr ? 'تأكيد كلمة المرور' : 'Confirm Password', confirmPassword, setConfirmPassword)}
+                {passwordField(t.newPassword, newPassword, setNewPassword)}
+                {passwordField(t.confirmPassword, confirmPassword, setConfirmPassword)}
               </View>
             )}
 
@@ -241,8 +241,8 @@ export default function ResetPasswordScreen() {
                 ) : (
                   <Text style={{ fontFamily: 'Cairo_700Bold', fontSize: 18 }} className="text-white">
                     {step === 'phone'
-                      ? (isAr ? 'إرسال الرمز' : 'Send Code')
-                      : (isAr ? 'تغيير كلمة المرور' : 'Change Password')}
+                      ? t.sendCode
+                      : t.changePassword}
                   </Text>
                 )}
               </LinearGradient>
@@ -251,14 +251,14 @@ export default function ResetPasswordScreen() {
             {step === 'code' ? (
               <Pressable onPress={handleSend} disabled={isBusy} className="mt-4 py-2">
                 <Text style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }} className="text-teal-600 text-center">
-                  {isAr ? 'إعادة إرسال الرمز' : 'Resend code'}
+                  {t.resendCode}
                 </Text>
               </Pressable>
             ) : null}
 
             <Pressable onPress={() => router.replace('/login')} className="mt-2 py-2">
               <Text style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }} className="text-slate-500 dark:text-slate-400 text-center">
-                {isAr ? 'العودة لتسجيل الدخول' : 'Back to login'}
+                {t.backToLogin}
               </Text>
             </Pressable>
           </View>

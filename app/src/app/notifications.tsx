@@ -146,13 +146,13 @@ export default function NotificationsScreen() {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return 'اليوم';
+      return t.today;
     } else if (diffDays === 1) {
-      return 'أمس';
+      return t.yesterday;
     } else if (diffDays < 7) {
-      return `منذ ${diffDays} أيام`;
+      return t.daysAgo.replace('{n}', String(diffDays));
     } else {
-      return date.toLocaleDateString('ar-IQ');
+      return date.toLocaleDateString(t.dateLocale);
     }
   };
 

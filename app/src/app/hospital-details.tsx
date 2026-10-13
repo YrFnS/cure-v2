@@ -18,11 +18,12 @@ import {
 import { FadeInDownView } from '@/components/FadeInDownView';
 import { useQuery } from '@tanstack/react-query';
 import { getHospitalById } from '@/lib/api';
-import { useSettingsStore } from '@/lib/settings-store';
+import { useSettingsStore, useTranslation } from '@/lib/settings-store';
 
 export default function HospitalDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useSettingsStore(s => s.theme);
+  const { t } = useTranslation();
   const isDark = theme === 'dark';
 
   const { data: hospital, isLoading } = useQuery({
@@ -37,7 +38,7 @@ export default function HospitalDetailsScreen() {
       <View className="flex-1 bg-white dark:bg-slate-900">
         <Stack.Screen
           options={{
-            title: 'تفاصيل المستشفى',
+            title: t.hospitalDetails,
             headerStyle: { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' },
             headerTintColor: isDark ? '#E2E8F0' : '#0F172A',
             headerTitleStyle: { fontFamily: 'Cairo_700Bold', fontSize: 18, color: isDark ? '#E2E8F0' : '#0F172A' },
@@ -74,7 +75,7 @@ export default function HospitalDetailsScreen() {
       <View className="flex-1 bg-white dark:bg-slate-900 items-center justify-center p-5">
         <Stack.Screen
           options={{
-            title: 'تفاصيل المستشفى',
+            title: t.hospitalDetails,
             headerStyle: { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' },
             headerTintColor: isDark ? '#E2E8F0' : '#0F172A',
             headerTitleStyle: { fontFamily: 'Cairo_700Bold', fontSize: 18, color: isDark ? '#E2E8F0' : '#0F172A' },
@@ -86,7 +87,7 @@ export default function HospitalDetailsScreen() {
           style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 18 }}
           className="text-gray-500 dark:text-slate-400 mt-4 text-center"
         >
-          لم يتم العثور على المستشفى
+          {t.hospitalNotFound}
         </Text>
       </View>
     );
@@ -98,7 +99,7 @@ export default function HospitalDetailsScreen() {
       return;
     }
     Linking.openURL(`tel:${phoneNumber}`).catch(() => {
-      showAlert('خطأ', 'تعذر فتح تطبيق الهاتف');
+      showAlert(t.errorTitle, t.cannotOpenDialer);
     });
   };
 
@@ -106,7 +107,7 @@ export default function HospitalDetailsScreen() {
     <View className="flex-1 bg-white dark:bg-slate-900">
       <Stack.Screen
         options={{
-          title: 'تفاصيل المستشفى',
+          title: t.hospitalDetails,
           headerStyle: { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' },
           headerTintColor: isDark ? '#E2E8F0' : '#0F172A',
           headerTitleStyle: { fontFamily: 'Cairo_700Bold', fontSize: 18, color: isDark ? '#E2E8F0' : '#0F172A' },
@@ -137,7 +138,7 @@ export default function HospitalDetailsScreen() {
             style={{ fontFamily: 'Cairo_500Medium', fontSize: 14 }}
             className="text-gray-400 dark:text-slate-400 text-right mb-2"
           >
-            اسم المستشفى
+            {t.hospitalName}
           </Text>
           <Text
             style={{ fontFamily: 'Cairo_700Bold', fontSize: 24 }}
@@ -157,7 +158,7 @@ export default function HospitalDetailsScreen() {
               style={{ fontFamily: 'Cairo_500Medium', fontSize: 14 }}
               className="text-gray-400 dark:text-slate-400 mr-2"
             >
-              الموقع
+              {t.location}
             </Text>
             <MapPin size={18} color="#94A3B8" />
           </View>
@@ -179,7 +180,7 @@ export default function HospitalDetailsScreen() {
               style={{ fontFamily: 'Cairo_500Medium', fontSize: 14 }}
               className="text-gray-400 dark:text-slate-400 mr-2"
             >
-              رقم الهاتف
+              {t.phone}
             </Text>
             <Phone size={18} color="#94A3B8" />
           </View>
@@ -201,7 +202,7 @@ export default function HospitalDetailsScreen() {
             style={{ fontFamily: 'Cairo_500Medium', fontSize: 14 }}
             className="text-gray-400 dark:text-slate-400 text-right mb-3"
           >
-            حالة الارتباط
+            {t.linkStatus}
           </Text>
           <View className="flex-row items-center justify-end">
             {isLinked ? (
@@ -210,7 +211,7 @@ export default function HospitalDetailsScreen() {
                   style={{ fontFamily: 'Cairo_700Bold', fontSize: 20 }}
                   className="text-green-600 dark:text-emerald-300 mr-3"
                 >
-                  مرتبط
+                  {t.linked}
                 </Text>
                 <View className="w-12 h-12 rounded-full bg-green-100 dark:bg-emerald-900/30 items-center justify-center">
                   <CheckCircle size={28} color="#16A34A" />
@@ -222,7 +223,7 @@ export default function HospitalDetailsScreen() {
                   style={{ fontFamily: 'Cairo_700Bold', fontSize: 20 }}
                   className="text-red-500 dark:text-red-300 mr-3"
                 >
-                  غير مرتبط
+                  {t.notLinked}
                 </Text>
                 <View className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 items-center justify-center">
                   <XCircle size={28} color="#EF4444" />
@@ -250,7 +251,7 @@ export default function HospitalDetailsScreen() {
               style={{ fontFamily: 'Cairo_700Bold', fontSize: 20 }}
               className="text-white mr-3"
             >
-              اتصال بالمستشفى
+              {t.callHospital}
             </Text>
             <Phone size={26} color="#FFFFFF" />
           </Pressable>
@@ -266,7 +267,7 @@ export default function HospitalDetailsScreen() {
             style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 14, lineHeight: 24 }}
             className="text-amber-700 dark:text-amber-200 text-right"
           >
-            لربط هذا المستشفى بحسابك، يرجى مراجعة قسم الاستقبال مع إبراز هويتك ورقمك الطبي الموحد.
+            {t.linkHospitalNote}
           </Text>
         </FadeInDownView>
         )}

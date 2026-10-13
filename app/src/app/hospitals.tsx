@@ -14,7 +14,7 @@ import {
   Phone,
 } from 'lucide-react-native';
 import { FadeInDownView } from '@/components/FadeInDownView';
-import { useSettingsStore } from '@/lib/settings-store';
+import { useSettingsStore, useTranslation } from '@/lib/settings-store';
 import { useQuery } from '@tanstack/react-query';
 import { getLinkedHospitals } from '@/lib/api';
 import type { Hospital } from '@/lib/types';
@@ -22,6 +22,7 @@ import type { Hospital } from '@/lib/types';
 export default function HospitalsScreen() {
   const router = useRouter();
   const theme = useSettingsStore(s => s.theme);
+  const { t } = useTranslation();
   const isDark = theme === 'dark';
   const { data: linkedHospitals = [], isLoading } = useQuery<Hospital[]>({
     queryKey: ['linked-hospitals'],
@@ -32,7 +33,7 @@ export default function HospitalsScreen() {
     <View className="flex-1 bg-white dark:bg-slate-900">
       <Stack.Screen
         options={{
-          title: 'المستشفيات الداعمة',
+          title: t.supportingHospitals,
           headerStyle: { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' },
           headerTintColor: isDark ? '#E2E8F0' : '#0F172A',
           headerTitleStyle: { fontFamily: 'Cairo_700Bold', fontSize: 18, color: isDark ? '#E2E8F0' : '#0F172A' },
@@ -54,7 +55,7 @@ export default function HospitalsScreen() {
               style={{ fontFamily: 'Cairo_700Bold', fontSize: 18 }}
               className="text-teal-800 dark:text-teal-200 mr-3"
             >
-              المستشفيات المرتبطة بحسابك
+              {t.hospitalsLinkedToAccount}
             </Text>
             <View className="w-12 h-12 rounded-xl bg-teal-100 dark:bg-teal-900/40 items-center justify-center">
               <Building2 size={24} color="#0891B2" />
@@ -64,7 +65,7 @@ export default function HospitalsScreen() {
             style={{ fontFamily: 'Cairo_500Medium', fontSize: 14, lineHeight: 24 }}
             className="text-teal-700 dark:text-teal-200 text-right"
           >
-            هذه قائمة بالمستشفيات التي يمكنك الوصول إلى سجلاتك الطبية من خلالها باستخدام الرقم الطبي الموحد.
+            {t.hospitalsListIntro}
           </Text>
         </FadeInDownView>
 
@@ -85,7 +86,7 @@ export default function HospitalsScreen() {
                 style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 16 }}
                 className="text-gray-600 dark:text-slate-300"
               >
-                مستشفى مرتبط
+                {t.linkedHospitalCount}
               </Text>
             </View>
           </View>
@@ -96,7 +97,7 @@ export default function HospitalsScreen() {
           style={{ fontFamily: 'Cairo_700Bold', fontSize: 18 }}
           className="text-gray-900 dark:text-slate-100 text-right mb-4"
         >
-          المستشفيات المرتبطة
+          {t.linkedHospitals}
         </Text>
 
         {isLoading ? (
@@ -173,7 +174,7 @@ export default function HospitalsScreen() {
                           style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 14 }}
                           className="text-green-700 dark:text-emerald-300 mr-2"
                         >
-                          مرتبط
+                          {t.linked}
                         </Text>
                         <CheckCircle size={16} color="#15803D" />
                       </View>
@@ -201,13 +202,13 @@ export default function HospitalsScreen() {
               style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 16 }}
               className="text-gray-500 dark:text-slate-300 mt-4 text-center"
             >
-              لا توجد مستشفيات مرتبطة حالياً
+              {t.noLinkedHospitals}
             </Text>
             <Text
               style={{ fontFamily: 'Cairo_500Medium', fontSize: 14 }}
               className="text-gray-400 dark:text-slate-400 mt-2 text-center"
             >
-              يرجى مراجعة أحد المستشفيات الداعمة لربط حسابك
+              {t.visitHospitalToLink}
             </Text>
           </FadeInDownView>
         )}
@@ -221,7 +222,7 @@ export default function HospitalsScreen() {
             style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 14, lineHeight: 24 }}
             className="text-amber-700 dark:text-amber-200 text-right"
           >
-            ملاحظة: لربط مستشفى جديد، يرجى مراجعة قسم الاستقبال في المستشفى مع إبراز هويتك ورقمك الطبي الموحد.
+            {t.linkNewHospitalNote}
           </Text>
         </FadeInDownView>
       </ScrollView>

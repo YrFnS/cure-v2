@@ -9,7 +9,7 @@ import { createLabToken } from '@/lib/api';
 // The patient shares a single-use upload link with the lab (QR or any messaging app).
 // The link holds only a random code — no patient ID, no name.
 export default function LabCodeScreen() {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const token = useMutation({ mutationFn: createLabToken });
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function LabCodeScreen() {
 
   const url: string | undefined = token.data?.url;
   const expires = token.data?.expiresAt
-    ? new Date(token.data.expiresAt).toLocaleString(language === 'ar' ? 'ar-IQ' : 'en-GB', {
+    ? new Date(token.data.expiresAt).toLocaleString(t.dateLocale, {
         dateStyle: 'medium',
         timeStyle: 'short',
       })

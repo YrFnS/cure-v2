@@ -222,14 +222,14 @@ export default function LoginScreen() {
             <FadeInDownView delay={100} duration={600} className="items-center">
               <View className="w-24 h-24 rounded-3xl bg-white dark:bg-slate-800 items-center justify-center mb-4 overflow-hidden">
                 <Text style={{ fontFamily: 'Cairo_700Bold', fontSize: 32 }} className="text-teal-600">
-                  {language === 'ar' ? 'كيور' : 'Cure'}
+                  {t.cure}
                 </Text>
               </View>
               <Text style={{ fontFamily: 'Cairo_700Bold', fontSize: 28 }} className="text-white text-center mb-2">
-                {language === 'ar' ? 'كيور' : 'Cure'}
+                {t.cure}
               </Text>
               <Text style={{ fontFamily: 'Cairo_500Medium', fontSize: 16 }} className="text-white/90 text-center">
-                {language === 'ar' ? 'بوابة المرضى الإلكترونية' : 'Patient Portal'}
+                {t.patientPortal}
               </Text>
             </FadeInDownView>
           </LinearGradient>
@@ -244,8 +244,8 @@ export default function LoginScreen() {
                 className="text-slate-800 dark:text-slate-100 mr-3"
               >
                 {isRegisterMode
-                  ? (language === 'ar' ? 'إنشاء حساب' : 'Create Account')
-                  : (language === 'ar' ? 'تسجيل الدخول' : 'Login')}
+                  ? t.createAccount
+                  : t.login}
               </Text>
               {isRegisterMode ? <UserPlus size={28} color="#0891B2" /> : <ShieldCheck size={28} color="#0891B2" />}
             </View>
@@ -256,9 +256,9 @@ export default function LoginScreen() {
             >
               {isRegisterMode
                 ? (codeSent
-                  ? (language === 'ar' ? 'أدخل الرمز المرسل إلى واتساب' : 'Enter the code we sent on WhatsApp')
-                  : (language === 'ar' ? 'رقم الهاتف وكلمة المرور، ثم رمز عبر واتساب' : 'Phone and password, then a WhatsApp code'))
-                : (language === 'ar' ? 'أدخل رقم الهاتف وكلمة المرور' : 'Enter your phone number and password')}
+                  ? t.signupEnterCode
+                  : t.signupSubtitle)
+                : t.loginSubtitle}
             </Text>
 
             {isRegisterMode ? (
@@ -269,7 +269,7 @@ export default function LoginScreen() {
                       style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }}
                       className={`text-slate-700 dark:text-slate-200 mb-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}
                     >
-                      {language === 'ar' ? 'رمز التحقق' : 'Verification code'}
+                      {t.verificationCode}
                     </Text>
                     <View className="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                       <TextInput
@@ -286,7 +286,7 @@ export default function LoginScreen() {
                     </View>
                     <Pressable onPress={() => { setCodeSent(false); setRegisterValue('code', ''); }} className="mt-3 py-1">
                       <Text style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 14 }} className="text-teal-600 text-center">
-                        {language === 'ar' ? 'تغيير الرقم أو إعادة الإرسال' : 'Change number or resend'}
+                        {t.changeNumberOrResend}
                       </Text>
                     </Pressable>
                   </View>
@@ -297,13 +297,13 @@ export default function LoginScreen() {
                         style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }}
                         className={`text-slate-700 dark:text-slate-200 mb-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}
                       >
-                        {language === 'ar' ? 'رقم الهاتف (واتساب)' : 'Phone Number (WhatsApp)'}
+                        {t.phoneNumberWhatsapp}
                       </Text>
                       <View className="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                         <TextInput
                           value={registerForm.phone}
                           onChangeText={text => setRegisterValue('phone', normalizeArabicDigits(text).replace(/\D/g, '').slice(0, 14))}
-                          placeholder={language === 'ar' ? 'مثال: 0770xxxxxxx' : 'e.g. 0770xxxxxxx'}
+                          placeholder={t.phonePlaceholder}
                           placeholderTextColor="#94A3B8"
                           keyboardType="phone-pad"
                           maxLength={14}
@@ -314,15 +314,15 @@ export default function LoginScreen() {
                     </View>
 
                 {[
-                  { key: 'password', labelAr: 'كلمة المرور', labelEn: 'Password', placeholder: '••••••••' },
-                  { key: 'confirmPassword', labelAr: 'تأكيد كلمة المرور', labelEn: 'Confirm Password', placeholder: '••••••••' },
+                  { key: 'password', label: t.password, placeholder: '••••••••' },
+                  { key: 'confirmPassword', label: t.confirmPassword, placeholder: '••••••••' },
                 ].map(field => (
                   <View className="mb-4" key={field.key}>
                     <Text
                       style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }}
                       className={`text-slate-700 dark:text-slate-200 mb-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}
                     >
-                      {language === 'ar' ? field.labelAr : field.labelEn}
+                      {field.label}
                     </Text>
                     <View className={`bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 flex-row items-center ${language === 'ar' ? '' : 'flex-row-reverse'}`}>
                       <Pressable onPress={() => setShowPassword(!showPassword)} className="px-4 py-4">
@@ -352,13 +352,13 @@ export default function LoginScreen() {
                     style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }}
                     className={`text-slate-700 dark:text-slate-200 mb-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}
                   >
-                    {language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
+                    {t.phoneNumber}
                   </Text>
                   <View className="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                     <TextInput
                       value={identifier}
                       onChangeText={setIdentifier}
-                      placeholder={language === 'ar' ? 'مثال: 0770xxxxxxx' : 'e.g. 0770xxxxxxx'}
+                      placeholder={t.phonePlaceholder}
                       placeholderTextColor="#94A3B8"
                       autoCapitalize="none"
                       className={`px-4 py-4 text-slate-800 dark:text-slate-100 ${language === 'ar' ? 'text-right' : 'text-left'}`}
@@ -372,7 +372,7 @@ export default function LoginScreen() {
                     style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }}
                     className={`text-slate-700 dark:text-slate-200 mb-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}
                   >
-                    {language === 'ar' ? 'كلمة المرور' : 'Password'}
+                    {t.password}
                   </Text>
                   <View className="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 flex-row items-center">
                     <Pressable onPress={() => setShowPassword(!showPassword)} className="px-4 py-4">
@@ -427,9 +427,9 @@ export default function LoginScreen() {
                   <Text style={{ fontFamily: 'Cairo_700Bold', fontSize: 18 }} className="text-white">
                     {isRegisterMode
                       ? (codeSent
-                        ? (language === 'ar' ? 'إنشاء الحساب' : 'Create Account')
-                        : (language === 'ar' ? 'إرسال الرمز عبر واتساب' : 'Send WhatsApp code'))
-                      : (language === 'ar' ? 'دخول' : 'Login')}
+                        ? t.submitCreateAccount
+                        : t.sendWhatsappCode)
+                      : t.loginButton}
                   </Text>
                 )}
               </LinearGradient>
@@ -438,8 +438,8 @@ export default function LoginScreen() {
             <Pressable onPress={toggleMode} className="mt-4 py-2">
               <Text style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }} className="text-teal-600 text-center">
                 {isRegisterMode
-                  ? (language === 'ar' ? 'لديك حساب؟ سجّل الدخول' : 'Have an account? Log in')
-                  : (language === 'ar' ? 'ليس لديك حساب؟ أنشئ حساباً' : 'No account? Create one')}
+                  ? t.haveAccountLogIn
+                  : t.noAccountCreateOne}
               </Text>
             </Pressable>
 
@@ -451,7 +451,7 @@ export default function LoginScreen() {
               className="mt-4 py-2"
             >
               <Text style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 15 }} className="text-teal-600 text-center">
-                {language === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
+                {t.forgotPassword}
               </Text>
             </Pressable>
           </View>
@@ -468,13 +468,13 @@ export default function LoginScreen() {
                   style={{ fontFamily: 'Cairo_700Bold', fontSize: 15 }}
                   className={`text-amber-800 dark:text-amber-200 mb-2 ${language === 'ar' ? 'text-right' : 'text-left'}`}
                 >
-                  {language === 'ar' ? 'ملاحظة مهمة' : 'Important Note'}
+                  {t.importantNote}
                 </Text>
                 <Text
                   style={{ fontFamily: 'Cairo_500Medium', fontSize: 14, lineHeight: 24 }}
                   className={`text-amber-700 dark:text-amber-300 ${language === 'ar' ? 'text-right' : 'text-left'}`}
                 >
-                  {language === 'ar' ? 'تأكيد من معلوماتك بالكامل قبل ادخالها' : 'Please verify all your information before submitting'}
+                  {t.verifyInfoNote}
                 </Text>
               </View>
               {language === 'ar' && (
@@ -489,11 +489,11 @@ export default function LoginScreen() {
             <View className="flex-row gap-2 items-center justify-center mb-2">
               <Building2 size={18} color="#94A3B8" />
               <Text style={{ fontFamily: 'Cairo_500Medium', fontSize: 13 }} className="text-slate-400 dark:text-slate-500 mr-2">
-                {language === 'ar' ? 'للبرمجيات e2next' : 'e2next Software'}
+                {t.e2nextSoftware}
               </Text>
             </View>
             <Text style={{ fontFamily: 'Cairo_400Regular', fontSize: 12 }} className="text-slate-400 dark:text-slate-500 text-center">
-              {language === 'ar' ? `جميع الحقوق محفوظة © ${currentYear}` : `All rights reserved © ${currentYear}`}
+              {`${t.allRightsReserved} © ${currentYear}`}
             </Text>
           </View>
         </ScrollView>

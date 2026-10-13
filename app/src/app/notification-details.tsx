@@ -17,7 +17,7 @@ import {
   ExternalLink,
 } from 'lucide-react-native';
 import { FadeInDownView } from '@/components/FadeInDownView';
-import { useSettingsStore } from '@/lib/settings-store';
+import { useSettingsStore, useTranslation } from '@/lib/settings-store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteNotification, getNotifications } from '@/lib/api';
 import type { Notification, NotificationType } from '@/lib/types';
@@ -39,6 +39,7 @@ export default function NotificationDetailsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const notificationId = typeof id === 'string' ? id : '';
   const theme = useSettingsStore(s => s.theme);
+  const { t } = useTranslation();
   const isDark = theme === 'dark';
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -73,7 +74,7 @@ export default function NotificationDetailsScreen() {
           style={{ fontFamily: 'Cairo_500Medium' }}
           className="text-medical-textSecondary dark:text-slate-400"
         >
-          جاري التحميل...
+          {t.loading}
         </Text>
       </View>
     );
@@ -86,7 +87,7 @@ export default function NotificationDetailsScreen() {
           style={{ fontFamily: 'Cairo_500Medium' }}
           className="text-medical-textSecondary dark:text-slate-400"
         >
-          الإشعار غير موجود
+          {t.notificationNotFound}
         </Text>
       </View>
     );
@@ -96,7 +97,7 @@ export default function NotificationDetailsScreen() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ar-IQ', {
+    return date.toLocaleDateString(t.dateLocale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -127,7 +128,7 @@ export default function NotificationDetailsScreen() {
     <View className="flex-1 bg-medical-bg dark:bg-navy-950">
       <Stack.Screen
         options={{
-          title: 'تفاصيل الإشعار',
+          title: t.notificationDetails,
           headerStyle: { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' },
           headerTintColor: isDark ? '#FFFFFF' : '#0F172A',
           headerTitleStyle: { fontFamily: 'Cairo_600SemiBold', color: isDark ? '#FFFFFF' : '#0F172A' },
@@ -200,7 +201,7 @@ export default function NotificationDetailsScreen() {
                   style={{ fontFamily: 'Cairo_600SemiBold' }}
                   className="text-white text-lg"
                 >
-                  عرض التقرير
+                  {t.viewReport}
                 </Text>
                 <View style={{ marginLeft: 8 }}>
                   <ExternalLink size={20} color="#FFFFFF" />
@@ -219,7 +220,7 @@ export default function NotificationDetailsScreen() {
                   style={{ fontFamily: 'Cairo_600SemiBold' }}
                   className="text-white text-lg mr-2"
                 >
-                  {deleteMutation.isPending ? 'جارٍ الحذف...' : 'حذف الإشعار'}
+                  {deleteMutation.isPending ? t.deleting : t.deleteNotification}
                 </Text>
                 <View style={{ marginLeft: 8 }}>
                   <Bell size={20} color="#FFFFFF" />
