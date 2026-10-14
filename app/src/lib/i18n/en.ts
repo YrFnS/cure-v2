@@ -57,6 +57,7 @@ export const en: Record<keyof typeof ar, string> = {
   labLinkExpires: 'Valid until',
   labLinkShareMessage: 'Link to upload the lab result to the Cure app (one result only):',
   askAboutResult: 'Ask about your result',
+  aiSummaryPreparing: 'Preparing the AI summary — you can view the report now',
   aiDisclaimer: 'AI explanations, not a medical diagnosis',
   directory: 'Directory',
   profile: 'Profile',

@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { showAlert } from '@/lib/alert';
-import { useLocalSearchParams, Stack, useFocusEffect } from 'expo-router';
+import { useLocalSearchParams, Stack, useFocusEffect, useRouter } from 'expo-router';
 import {
   Calendar,
   User,
@@ -83,13 +83,18 @@ export default function ReportDetailsScreen() {
     staleTime: 10 * 1000,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    // Poll only while the lab result is pending; the AI summary is generated server-side once.
-    refetchInterval: query => (query.state.data?.status === 'pending' ? 15000 : false),
+    // Poll while the lab result is pending, then (for ~3 min) until the background AI summary lands.
+    refetchInterval: query => {
+      const data = query.state.data;
+      if (data?.status === 'pending') return 15000;
+      return data?.status === 'ready' && !data.detailsAr && query.state.dataUpdateCount < 45 ? 4000 : false;
+    },
     refetchIntervalInBackground: false,
     retry: 1,
   });
 
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [selectedQuestion, setSelectedQuestion] = React.useState<string | null>(null);
   const ask = useMutation({
     mutationFn: (question: string) => askReportQuestion(reportId, question),
@@ -317,6 +322,10 @@ export default function ReportDetailsScreen() {
   };
 
   const handleView = () => {
+    if (report.fileUrl && !hasImageReport) {
+      router.push({ pathname: '/report-pdf', params: { uri: report.fileUrl } });
+      return;
+    }
     if (hasImageReport && !report.fileUrl) return;
     setShowDetails(true);
   };
@@ -589,11 +598,14 @@ export default function ReportDetailsScreen() {
               elevation: 2,
             }}
           >
+            {report.status === 'ready' && report.fileUrl ? (
+              <ActivityIndicator size="small" color="#0891B2" style={{ marginBottom: 8 }} />
+            ) : null}
             <Text
               style={{ fontFamily: 'Cairo_500Medium', fontSize: 15 }}
               className="text-medical-textSecondary dark:text-slate-400 text-center"
             >
-              {t.noReportContent}
+              {report.status === 'ready' && report.fileUrl ? t.aiSummaryPreparing : t.noReportContent}
             </Text>
           </FadeInDownView>
         )}

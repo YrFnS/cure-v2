@@ -55,6 +55,7 @@ export const ar = {
   labLinkExpires: 'صالح حتى',
   labLinkShareMessage: 'رابط رفع نتيجة التحليل إلى تطبيق كيور (صالح لنتيجة واحدة):',
   askAboutResult: 'اسأل عن نتيجتك',
+  aiSummaryPreparing: 'جارٍ تجهيز الملخص بالذكاء الاصطناعي، يمكنك عرض التقرير الآن',
   aiDisclaimer: 'إجابات توضيحية بالذكاء الاصطناعي وليست تشخيصاً طبياً',
   directory: 'الدليل',
   profile: 'الملف الشخصي',
