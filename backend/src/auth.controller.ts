@@ -1,6 +1,5 @@
 import { BadRequestException, Body, Controller, ForbiddenException, Get, Headers, Patch, Post, Query, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
-import crypto from 'node:crypto';
 import {
   AllowUnverified,
   AuthGuard,
@@ -26,7 +25,7 @@ const MIN_PASSWORD = 6;
 export function toPatientDto(patient: any, phone: string | null) {
   return {
     id: patient.id,
-    mrn: patient.mrn,
+    mrn: patient.nationalId ?? '', // the MRN is the national ID number; empty until the card is verified
     name: patient.name,
     nameAr: patient.nameAr,
     nationalId: patient.nationalId ?? '',
@@ -96,19 +95,11 @@ export class AuthController {
         phone,
         passwordHash: hash,
         passwordSalt: salt,
-        patient: { create: { mrn: await this.nextMrn() } },
+        patient: { create: {} },
       },
       include: { patient: true },
     });
     return { token: await this.openSession(user.id), patient: toPatientDto(user.patient, phone) };
-  }
-
-  // ponytail: random 8-digit MRN with a uniqueness retry; a sequence if MRNs must be ordered.
-  private async nextMrn(): Promise<string> {
-    for (;;) {
-      const mrn = String(crypto.randomInt(10_000_000, 100_000_000));
-      if (!(await this.prisma.patient.findUnique({ where: { mrn } }))) return mrn;
-    }
   }
 
   // Patients log in by phone; lab and admin users by username.

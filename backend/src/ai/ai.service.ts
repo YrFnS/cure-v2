@@ -38,7 +38,9 @@ export class AiService {
       `These are the front and back of an Iraqi national ID card.
 Return JSON with exactly these keys:
 {"nameAr": full name in Arabic as printed, "name": the same name in Latin letters,
- "nationalId": the national ID number (digits only), "dateOfBirth": "YYYY-MM-DD",
+ "nationalId": the 12-digit national number printed near the top of the front, under
+   "البطاقة الوطنية / الرقم الوطني" (digits only) — NOT the card number (e.g. "AA0000000") and
+   NOT the family number on the back, "dateOfBirth": "YYYY-MM-DD",
  "gender": "male" or "female", "bloodType": e.g. "O+" or "" if not printed,
  "address": place of residence if printed, else ""}
 If the images are not an Iraqi national ID card, return {"nationalId": ""}.`,

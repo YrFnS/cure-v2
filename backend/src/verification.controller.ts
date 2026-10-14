@@ -81,7 +81,8 @@ export class VerificationController {
       { mimeType: front.mimeType, base64: front.buffer.toString('base64') },
       { mimeType: back.mimeType, base64: back.buffer.toString('base64') },
     );
-    if (card.nationalId.length < 8 || !card.nameAr) {
+    // The national number becomes the MRN, so anything but its 12 digits is a misread.
+    if (card.nationalId.length !== 12 || !card.nameAr) {
       throw new BadRequestException('تعذرت قراءة البطاقة الوطنية، أعد التصوير بإضاءة جيدة');
     }
 
