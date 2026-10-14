@@ -72,12 +72,11 @@ export class ReportsController {
 
   @Get(':id')
   async get(@CurrentUser() user: AuthUser, @Param('id') id: string) {
-    let order: any = await this.ownOrder(user, id);
-    try {
-      order = await ensureInsight(this.prisma, this.ai, order);
-    } catch (error) {
-      this.logger.warn(`AI insight for ${id} failed: ${error instanceof Error ? error.message : error}`);
-    }
+    const order = await this.ownOrder(user, id);
+    // Never make the patient wait for the AI: the app shows the PDF now and polls for the summary.
+    ensureInsight(this.prisma, this.ai, order).catch(error =>
+      this.logger.warn(`AI insight for ${id} failed: ${error instanceof Error ? error.message : error}`),
+    );
     return toReport(order, await this.patientName(user));
   }
 
