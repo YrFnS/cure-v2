@@ -4,7 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, IdCard, LogOut, ShieldCheck } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Camera, IdCard, LogOut, ShieldCheck, X } from 'lucide-react-native';
 import { useAuthStore } from '@/lib/auth-store';
 import { useTranslation } from '@/lib/settings-store';
 import { getIdCheck, verifyNationalId } from '@/lib/api';
@@ -12,13 +13,14 @@ import { getIdCheck, verifyNationalId } from '@/lib/api';
 type Side = 'front' | 'back';
 type Shot = { uri: string; dataUrl: string };
 
-// Account is unusable until verified: scan both sides of the Iraqi national ID,
+// Opened from the lock over the tabs; the account is unusable until verified: scan both sides of the Iraqi national ID,
 // the backend reads the card, fills the profile, and marks the account verified.
 export default function VerifyIdScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const updatePatient = useAuthStore(s => s.updatePatient);
   const logout = useAuthStore(s => s.logout);
+  const router = useRouter();
   const [shots, setShots] = useState<Record<Side, Shot | null>>({ front: null, back: null });
   const [error, setError] = useState('');
 
@@ -81,6 +83,14 @@ export default function VerifyIdScreen() {
           end={{ x: 1, y: 1 }}
           style={{ paddingTop: insets.top + 24, paddingBottom: 64, paddingHorizontal: 24, borderBottomLeftRadius: 40, borderBottomRightRadius: 40, alignItems: 'center' }}
         >
+          <Pressable
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+            accessibilityLabel={t.close}
+            className="absolute left-4 w-10 h-10 rounded-full bg-white/20 items-center justify-center active:opacity-70"
+            style={{ top: insets.top + 12 }}
+          >
+            <X size={22} color="#FFF" />
+          </Pressable>
           <View className="w-20 h-20 rounded-3xl bg-white items-center justify-center mb-4">
             <IdCard size={40} color="#0891B2" />
           </View>

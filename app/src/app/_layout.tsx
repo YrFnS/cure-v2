@@ -113,12 +113,14 @@ function RootLayoutNav() {
     if (!hasHydrated) return;
     const isPublicScreen = segments[0] === 'login' || segments[0] === 'reset-password';
     const isVerifyScreen = segments[0] === 'verify-id';
+    const isTabs = segments[0] === '(tabs)';
 
     if (!isAuthenticated) {
       if (!isPublicScreen) router.replace('/login');
     } else if (!isVerified) {
-      // Nothing works until the national ID is verified (the backend enforces it too).
-      if (!isVerifyScreen) router.replace('/verify-id');
+      // Unverified accounts see the tabs behind a lock (tabs/_layout.tsx) and can open the ID
+      // scan from there; every other screen stays closed (the backend enforces it too).
+      if (!isTabs && !isVerifyScreen) router.replace('/(tabs)');
     } else if (isPublicScreen || isVerifyScreen) {
       router.replace('/(tabs)');
     }

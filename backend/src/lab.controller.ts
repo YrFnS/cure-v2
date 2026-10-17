@@ -29,12 +29,16 @@ async function liveToken(prisma: PrismaService, code: string) {
   return token;
 }
 
+// Result summaries and questions are switched off (owner, 2026-10-17); AI_INSIGHTS=on turns them back on.
+// The ID card read is not affected.
+export const insightsEnabled = () => process.env.AI_INSIGHTS === 'on';
+
 // Generate the summary + tappable questions once per result; patients reuse the cached copy.
 // ponytail: in-process dedupe, enough for one server process.
 const inFlight = new Map<string, Promise<any>>();
 
 export function ensureInsight(prisma: PrismaService, ai: AiService, order: any): Promise<any> {
-  if (order.status !== 'READY' || !order.pdfPath || order.summary) return Promise.resolve(order);
+  if (!insightsEnabled() || order.status !== 'READY' || !order.pdfPath || order.summary) return Promise.resolve(order);
   if (!inFlight.has(order.id)) {
     inFlight.set(order.id, generateInsight(prisma, ai, order).finally(() => inFlight.delete(order.id)));
   }
@@ -52,7 +56,7 @@ async function generateInsight(prisma: PrismaService, ai: AiService, order: any)
 }
 
 // No-login upload page (backend/public/lab): whoever holds the patient's link can upload ONE
-// result to that patient, once. Nothing records which lab it was beyond the name they type.
+// result to that patient, once. Nothing records who sent it (any lab, radiology centre or clinic).
 // ponytail: open link by owner decision (2026-10-05); the logged-in lab routes below stay for later.
 @Controller('lab/link')
 export class LabLinkController {
@@ -73,10 +77,9 @@ export class LabLinkController {
 
   @Post(':code')
   async upload(@Param('code') code: string, @Body() body: { labName?: string; testName?: string; pdf?: string }) {
-    const labName = String(body.labName ?? '').trim().slice(0, 120);
-    const testName = String(body.testName ?? '').trim().slice(0, 120);
-    if (!labName) throw new BadRequestException('اكتب اسم المختبر');
-    if (!testName) throw new BadRequestException('اكتب اسم التحليل');
+    // The page sends only the PDF now (owner, 2026-10-17); names stay optional for older pages.
+    const labName = String(body.labName ?? '').trim().slice(0, 120) || null;
+    const testName = String(body.testName ?? '').trim().slice(0, 120) || 'نتيجة فحص';
     const pdf = decodeDataUpload(body.pdf, ['application/pdf']);
     const token = await liveToken(this.prisma, code);
 
@@ -97,7 +100,7 @@ export class LabLinkController {
         readyAt: new Date(),
       },
     });
-    await notify(this.prisma, order.patientId, 'نتيجة التحليل جاهزة', `نتيجة ${testName} من ${labName} جاهزة للعرض`, order.id);
+    await notify(this.prisma, order.patientId, 'نتيجة جديدة جاهزة', 'وصلت نتيجة فحص جديدة وهي جاهزة للعرض', order.id);
     ensureInsight(this.prisma, this.ai, order).catch(error =>
       this.logger.warn(`AI insight for ${order.id} failed: ${error instanceof Error ? error.message : error}`),
     );

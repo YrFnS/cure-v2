@@ -4,7 +4,7 @@ import { AiService } from './ai/ai.service';
 import { AuthGuard, type AuthUser, CurrentUser } from './common/auth';
 import { PrismaService } from './common/prisma.service';
 import { readFile } from './common/storage';
-import { ensureInsight } from './lab.controller';
+import { ensureInsight, insightsEnabled } from './lab.controller';
 
 const day = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -25,9 +25,10 @@ function toReport(order: any, patientName: string) {
     patientNameAr: patientName,
     status: order.status === 'READY' ? 'ready' : 'pending',
     fileUrl: order.pdfPath ? `${base}/api/reports/${order.id}/file/result.pdf` : undefined,
-    detailsAr: order.summary ?? undefined,
-    suggestions: Array.isArray(order.suggestions) ? order.suggestions : [],
-    answers: order.answers ?? {},
+    // Hidden while AI is off, including summaries cached before it was switched off.
+    detailsAr: insightsEnabled() ? order.summary ?? undefined : undefined,
+    suggestions: insightsEnabled() && Array.isArray(order.suggestions) ? order.suggestions : [],
+    answers: insightsEnabled() ? order.answers ?? {} : {},
   };
 }
 
@@ -83,6 +84,7 @@ export class ReportsController {
   // Not a chat: the patient can only ask one of the suggested questions for this result.
   @Post(':id/ask')
   async ask(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() body: { question?: string }) {
+    if (!insightsEnabled()) throw new BadRequestException('هذه الميزة غير متاحة حالياً');
     const order = await this.ownOrder(user, id);
     const suggestions = Array.isArray(order.suggestions) ? (order.suggestions as string[]) : [];
     const question = String(body.question ?? '');

@@ -32,6 +32,10 @@ import type { ReportType } from '@/lib/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { askReportQuestion, getReportById, getToken } from '@/lib/api';
 
+// AI summary and suggested questions are switched off for now (owner, 2026-10-17).
+// Turn back on together with the backend's AI_INSIGHTS=on.
+const AI_INSIGHTS = false;
+
 const getReportIcon = (type: ReportType) => {
   switch (type) {
     case 'laboratory':
@@ -87,7 +91,7 @@ export default function ReportDetailsScreen() {
     refetchInterval: query => {
       const data = query.state.data;
       if (data?.status === 'pending') return 15000;
-      return data?.status === 'ready' && !data.detailsAr && query.state.dataUpdateCount < 45 ? 4000 : false;
+      return AI_INSIGHTS && data?.status === 'ready' && !data.detailsAr && query.state.dataUpdateCount < 45 ? 4000 : false;
     },
     refetchIntervalInBackground: false,
     retry: 1,
@@ -543,27 +547,30 @@ export default function ReportDetailsScreen() {
             </View>
           </View>
 
-          <View className="flex-row items-center p-4">
-            <Text
-              style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 18 }}
-              className="text-medical-text dark:text-slate-100 flex-1 text-right"
-            >
-              {report.doctorNameAr}
-            </Text>
-            <Text
-              style={{ fontFamily: 'Cairo_400Regular', fontSize: 16 }}
-              className="text-medical-textSecondary dark:text-slate-400 mx-3"
-            >
-              {t.doctor}
-            </Text>
-            <View className="w-10 h-10 rounded-xl bg-green-100 dark:bg-emerald-900/30 items-center justify-center">
-              <User size={20} color="#059669" />
+          {/* Results sent through the patient's link carry no sender name. */}
+          {report.doctorNameAr ? (
+            <View className="flex-row items-center p-4">
+              <Text
+                style={{ fontFamily: 'Cairo_600SemiBold', fontSize: 18 }}
+                className="text-medical-text dark:text-slate-100 flex-1 text-right"
+              >
+                {report.doctorNameAr}
+              </Text>
+              <Text
+                style={{ fontFamily: 'Cairo_400Regular', fontSize: 16 }}
+                className="text-medical-textSecondary dark:text-slate-400 mx-3"
+              >
+                {t.doctor}
+              </Text>
+              <View className="w-10 h-10 rounded-xl bg-green-100 dark:bg-emerald-900/30 items-center justify-center">
+                <User size={20} color="#059669" />
+              </View>
             </View>
-          </View>
+          ) : null}
         </FadeInDownView>
 
         {/* Report Content */}
-        {(report.detailsAr || report.details) ? (
+        {!AI_INSIGHTS ? null : (report.detailsAr || report.details) ? (
           <FadeInDownView
             delay={400} duration={500}
             className="bg-white dark:bg-slate-800 rounded-2xl p-5 mb-6"
@@ -611,7 +618,7 @@ export default function ReportDetailsScreen() {
         )}
 
         {/* AI: suggested questions the patient can tap (not a free chat) */}
-        {report.status === 'ready' && (report.suggestions?.length ?? 0) > 0 ? (
+        {AI_INSIGHTS && report.status === 'ready' && (report.suggestions?.length ?? 0) > 0 ? (
           <FadeInDownView
             delay={450} duration={500}
             className="bg-white dark:bg-slate-800 rounded-2xl p-5 mb-6"

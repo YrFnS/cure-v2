@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>رفع نتيجة تحليل - كيور</title>
+  <title>رفع نتيجة فحص - كيور</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -19,8 +19,8 @@
     main { max-width:520px; margin:-40px auto 24px; padding:0 16px; }
     .card { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:22px; box-shadow:0 8px 24px rgba(0,0,0,.06); }
     label { display:block; font-weight:600; margin:14px 0 6px; }
-    input[type=text] { width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:12px; font:inherit; background:#F8FAFC; }
-    .file { border:2px dashed var(--border); border-radius:16px; padding:18px; text-align:center; cursor:pointer; color:var(--muted); }
+    .file { border:2px dashed var(--border); border-radius:16px; padding:32px 18px; text-align:center; cursor:pointer; color:var(--muted); }
+    .file.over { border-color:var(--primary); background:#CFFAFE; }
     .file.has { border-color:var(--primary); color:var(--primary); font-weight:600; }
     button { width:100%; margin-top:20px; font:inherit; font-weight:700; font-size:17px; border:0; border-radius:14px; padding:14px; cursor:pointer;
              background:linear-gradient(90deg,#0891B2,#0E7490); color:#fff; }
@@ -35,7 +35,7 @@
 </head>
 <body>
   <header>
-    <h1>رفع نتيجة تحليل</h1>
+    <h1>رفع نتيجة فحص</h1>
     <p>كيور - بوابة المرضى</p>
   </header>
   <main>
@@ -45,12 +45,8 @@
 
       <form id="form" class="hidden">
         <div class="patient">المريض: <strong id="patientName"></strong></div>
-        <label for="labName">اسم المختبر</label>
-        <input id="labName" type="text" autocomplete="organization" required maxlength="120" />
-        <label for="testName">اسم التحليل</label>
-        <input id="testName" type="text" placeholder="مثال: CBC" required maxlength="120" />
         <label>ملف النتيجة (PDF)</label>
-        <div id="drop" class="file" tabindex="0" role="button">اضغط لاختيار ملف PDF</div>
+        <div id="drop" class="file" tabindex="0" role="button">اسحب ملف PDF إلى هنا أو اضغط للاختيار</div>
         <input id="pdf" type="file" accept="application/pdf" class="hidden" />
         <button id="send" type="submit">إرسال النتيجة للمريض</button>
         <p class="note">الرابط صالح لإرسال نتيجة واحدة فقط.</p>
@@ -83,8 +79,6 @@
       return data.data;
     }
 
-    try { $('labName').value = localStorage.getItem('labName') || ''; } catch {}
-
     (async () => {
       try {
         if (!code) throw new Error('الرابط ناقص، اطلب من المريض رابطاً جديداً');
@@ -99,9 +93,20 @@
     $('drop').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') $('pdf').click(); };
     $('pdf').onchange = () => {
       const file = $('pdf').files[0];
-      $('drop').textContent = file ? file.name : 'اضغط لاختيار ملف PDF';
+      $('drop').textContent = file ? file.name : 'اسحب ملف PDF إلى هنا أو اضغط للاختيار';
       $('drop').classList.toggle('has', Boolean(file));
     };
+    $('drop').ondragover = e => { e.preventDefault(); $('drop').classList.add('over'); };
+    $('drop').ondragleave = () => $('drop').classList.remove('over');
+    $('drop').ondrop = e => {
+      e.preventDefault();
+      $('drop').classList.remove('over');
+      if (!e.dataTransfer.files.length) return;
+      $('pdf').files = e.dataTransfer.files; // the submit handler checks the type and size
+      $('pdf').onchange();
+    };
+    // A PDF dropped outside the box would otherwise make the browser open it and leave the page.
+    window.ondragover = window.ondrop = e => e.preventDefault();
 
     const toDataUrl = file => new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -119,9 +124,7 @@
       $('send').disabled = true;
       $('send').textContent = 'جارٍ الإرسال…';
       try {
-        const labName = $('labName').value.trim();
-        await api('POST', { labName, testName: $('testName').value.trim(), pdf: await toDataUrl(file) });
-        try { localStorage.setItem('labName', labName); } catch {}
+        await api('POST', { pdf: await toDataUrl(file) });
         $('form').classList.add('hidden');
         show('تم إرسال النتيجة للمريض. شكراً لك.', true);
       } catch (err) {
