@@ -260,6 +260,8 @@ export default function Profile() {
               </T>
               <Switch
                 accessibilityLabel={t.active}
+                // react-native-web positions the thumb with LTR offsets; under RTL it leaves the track.
+                style={{ direction: "ltr" }}
                 value={doctor.status === "ACTIVE"}
                 disabled={busy || editing}
                 trackColor={{ false: "#e3e9f6", true: "#5c85d9" }}

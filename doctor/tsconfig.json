@@ -4,15 +4,21 @@
     "strict": true,
     "jsx": "react-native",
     "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "app.config.ts",
-    "nativewind-env.d.ts",
-    "expo-env.d.ts",
-    ".expo/types/**/*.ts"
+    "nativewind-env.d.ts"
   ],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts"
+  ]
 }

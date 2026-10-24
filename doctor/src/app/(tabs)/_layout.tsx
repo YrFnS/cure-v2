@@ -60,8 +60,6 @@ export default function TabsLayout() {
         name="patients"
         options={{
           title: t.patients,
-          headerStyle: { backgroundColor: "#5c85d9" },
-          headerTintColor: "white",
           tabBarIcon: ({ color, size }) => (
             <UsersRound color={color} size={size} />
           ),

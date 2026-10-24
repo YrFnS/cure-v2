@@ -86,6 +86,10 @@ export default function Patients() {
           gap: 16,
           paddingBottom: 40,
           flexGrow: 1,
+          // Same centred column as Screen (max-w-2xl plus its 20px padding).
+          width: "100%",
+          maxWidth: 712,
+          alignSelf: "center",
         }}
         refreshControl={
           <RefreshControl
