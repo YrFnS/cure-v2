@@ -305,4 +305,22 @@ export const ar = {
   reportBeingPrepared: 'التقرير قيد الإعداد، سيتم إشعارك عند جاهزيته',
   htmlLang: 'ar',
   htmlDir: 'rtl',
+
+  // Patient booking
+  myAppointments: 'مواعيدي',
+  chooseBookingDate: 'اختر التاريخ · خلال ٣٠ يوماً',
+  availableSlots: 'الأوقات المتاحة (بتوقيت العيادة)',
+  noAvailableSlots: 'لا توجد أوقات متاحة في هذا التاريخ. اختر يوماً آخر.',
+  confirmBooking: 'تأكيد الحجز',
+  bookingConfirmed: 'تم حجز موعدك بنجاح.',
+  bookingFailed: 'تعذر الحجز. حدّث الأوقات وحاول مجدداً.',
+  appointmentsLoadFailed: 'تعذر تحميل المواعيد.',
+  availabilityLoadFailed: 'تعذر تحميل الأوقات المتاحة.',
+  cancelAppointmentQuestion: 'هل تريد إلغاء هذا الموعد؟',
+  appointmentCancelFailed: 'تعذر إلغاء الموعد. حاول مجدداً.',
+  appointmentScheduled: 'محجوز',
+  appointmentOpen: 'جارٍ',
+  appointmentClosed: 'مكتمل',
+  appointmentCancelled: 'ملغى',
+  remainingPlaces: 'الأماكن المتبقية',
 };

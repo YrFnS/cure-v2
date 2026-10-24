@@ -72,3 +72,18 @@ test('persists large state and authenticated offline responses', async () => {
   });
   expect(await request('/records', {}, 'patient-token')).toEqual({ records: [1, 2, 3] });
 });
+
+test('booking reads never fall back to stale persisted availability or appointments', async () => {
+  const { request, resolveAssetUrl, API_BASE_URL } = await import('./api/api');
+  for (const path of ['/appointments', '/doctors/fake/availability?date=2099-01-01']) {
+    const storedBefore = [...secureValues.entries()];
+    globalThis.fetch = mock(async () => new Response(JSON.stringify({ data: [{ id: 'stale' }] }), { status: 200 }));
+    expect(await request(path, {}, 'patient-token')).toEqual([{ id: 'stale' }]);
+    expect([...secureValues.entries()]).toEqual(storedBefore);
+    globalThis.fetch = mock(async () => new Response(JSON.stringify({ success: false, message: 'Not allowed' }), { status: 403 }));
+    await expect(request(path, {}, 'patient-token')).rejects.toThrow('HTTP 403');
+  }
+  const photo = resolveAssetUrl('/api/files?f=avatars%2Ffake.png&exp=123&sig=test');
+  expect(new URL(photo).searchParams.get('f')).toBe('avatars/fake.png');
+  expect(new URL(photo).origin).toBe(new URL(API_BASE_URL).origin);
+});

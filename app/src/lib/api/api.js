@@ -74,6 +74,12 @@ export function resolveAssetUrl(path) {
   const rawPath = String(path).trim();
   if (!rawPath) return '';
   if (/^(null|undefined|none|nan)$/i.test(rawPath)) return '';
+  // Keep signed avatar query parameters intact and route local development hosts to this API.
+  if (/^(?:https?:\/\/[^/]+)?\/api\/files\?/.test(rawPath)) {
+    const url = new URL(rawPath, `${API_BASE_URL}/`);
+    if (['localhost', '127.0.0.1'].includes(url.hostname)) return `${API_BASE_URL}${url.pathname}${url.search}`;
+    return url.toString();
+  }
   const buildBackendProxyAssetUrl = (assetPath) => {
     const raw = String(assetPath || '').trim();
     const normalized = (() => {
@@ -126,6 +132,7 @@ function getMethod(options = {}) {
 
 function isCacheableRequest(path, options = {}) {
   if (getMethod(options) !== 'GET') return false;
+  if (/^\/appointments(?:[/?]|$)|\/availability(?:[?]|$)/.test(path)) return false;
   if (!path || !path.startsWith('/')) return false;
   return true;
 }

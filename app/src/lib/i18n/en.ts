@@ -307,4 +307,22 @@ export const en: Record<keyof typeof ar, string> = {
   reportBeingPrepared: 'The report is being prepared; we will notify you when it is ready',
   htmlLang: 'en',
   htmlDir: 'ltr',
+
+  // Patient booking
+  myAppointments: 'My appointments',
+  chooseBookingDate: 'Choose a date · next 30 days',
+  availableSlots: 'Available times (clinic time)',
+  noAvailableSlots: 'No available times on this date. Choose another day.',
+  confirmBooking: 'Confirm appointment',
+  bookingConfirmed: 'Your appointment is booked.',
+  bookingFailed: 'Could not book. Refresh the times and try again.',
+  appointmentsLoadFailed: 'Could not load appointments.',
+  availabilityLoadFailed: 'Could not load available times.',
+  cancelAppointmentQuestion: 'Cancel this appointment?',
+  appointmentCancelFailed: 'Could not cancel the appointment. Try again.',
+  appointmentScheduled: 'Scheduled',
+  appointmentOpen: 'In progress',
+  appointmentClosed: 'Completed',
+  appointmentCancelled: 'Cancelled',
+  remainingPlaces: 'Places remaining',
 };

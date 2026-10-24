@@ -13,6 +13,7 @@ import {
   Clock,
   User,
 } from 'lucide-react-native';
+import DoctorBooking from '@/components/doctor-booking';
 import { FadeInDownView } from '@/components/FadeInDownView';
 import { useSettingsStore, useTranslation } from '@/lib/settings-store';
 import { useAuthStore } from '@/lib/auth-store';
@@ -23,7 +24,7 @@ import type { Doctor } from '@/lib/types';
 
 export default function DoctorDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const patient = useAuthStore(s => s.patient);
   const theme = useSettingsStore(s => s.theme);
   const isDark = theme === 'dark';
@@ -166,14 +167,14 @@ export default function DoctorDetailsScreen() {
             style={{ fontFamily: 'Cairo_700Bold' }}
             className="text-medical-text dark:text-slate-100 text-2xl text-center"
           >
-            {doctor.nameAr}
+            {language === 'ar' ? doctor.nameAr || doctor.name : doctor.name || doctor.nameAr}
           </Text>
-          {doctor.specialtyAr ? (
+          {(doctor.specialtyAr || doctor.specialty) ? (
             <Text
               style={{ fontFamily: 'Cairo_500Medium' }}
               className="text-medical-primary dark:text-cyan-300 text-lg mt-1"
             >
-              {doctor.specialtyAr}
+              {language === 'ar' ? doctor.specialtyAr || doctor.specialty : doctor.specialty || doctor.specialtyAr}
             </Text>
           ) : null}
           {doctor.departmentAr ? (
@@ -236,6 +237,8 @@ export default function DoctorDetailsScreen() {
             )}
           </View>
         </FadeInDownView>
+
+        {doctor.bookable ? <DoctorBooking doctorId={doctor.id} /> : null}
 
         {/* Actions */}
         <FadeInDownView
