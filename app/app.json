@@ -3,7 +3,7 @@
     "name": "Cure",
     "slug": "cure-v2",
     "scheme": "cure-v2",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "icon": "./assets/icon.png",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.e2next.curev2",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -19,7 +19,7 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "package": "com.e2next.curev2",
-      "versionCode": 4,
+      "versionCode": 5,
       "blockedPermissions": [
         "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
