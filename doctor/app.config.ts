@@ -14,6 +14,7 @@ const config: ExpoConfig = {
     bundleIdentifier: "com.e2next.curedoctor",
     supportsTablet: true,
     infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
       CFBundleAllowMixedLocalizations: true,
       CFBundleLocalizations: ["ar", "en"],
     },
@@ -51,6 +52,9 @@ const config: ExpoConfig = {
       },
     ],
   ],
-  extra: { supportsRTL: true },
+  extra: {
+    supportsRTL: true,
+    eas: { projectId: "6cfdb59a-c0b9-4829-a364-814eda47382b" },
+  },
 };
 export default config;
