@@ -12,6 +12,7 @@ enum Role {
   PATIENT
   LAB
   ADMIN
+  DOCTOR
 }
 
 model User {
@@ -23,6 +24,9 @@ model User {
   passwordSalt String
   labId        String?
   lab          Lab?      @relation(fields: [labId], references: [id])
+  doctor       Doctor?
+  notifications Notification[]
+  pushTokens   PushToken[]
   patient      Patient?
   sessions     Session[]
   createdAt    DateTime  @default(now())
@@ -52,6 +56,7 @@ model Patient {
   verifiedAt    DateTime?
   idFrontPath   String?
   idBackPath    String?
+  appointments  Appointment[]
   labOrders     LabOrder[]
   notifications Notification[]
   pushTokens    PushToken[]
@@ -100,7 +105,7 @@ model LabOrder {
   readyAt       DateTime?
 }
 
-// Display-only directory (no booking).
+// Legacy directory entries remain valid without a linked user.
 model Hospital {
   id       String @id @default(cuid())
   name     String
@@ -108,9 +113,41 @@ model Hospital {
   phone    String @default("")
 }
 
+enum DoctorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+enum WeekDay {
+  SUN
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+}
+
 model Doctor {
+  userId      String? @unique
+  user        User?   @relation(fields: [userId], references: [id])
+  firstName   String  @default("")
+  lastName    String  @default("")
+  gender      String  @default("")
+  birthDate   String  @default("")
+  bio         String  @default("") @db.Text
+  status      DoctorStatus @default(ACTIVE)
+  slots       WeeklySlot[]
+  appointments Appointment[]
   id          String  @id @default(cuid())
-  nameAr      String
+  nameAr      String  @default("")
   name        String  @default("")
   specialtyAr String  @default("")
   specialty   String  @default("")
@@ -119,10 +156,43 @@ model Doctor {
   hospitalId  String?
 }
 
+model WeeklySlot {
+  id              String @id @default(cuid())
+  doctorId        String
+  doctor          Doctor @relation(fields: [doctorId], references: [id])
+  day             WeekDay
+  from            String @db.VarChar(5)
+  to              String @db.VarChar(5)
+  maxAppointments Int
+  active          Boolean @default(true)
+  appointments    Appointment[]
+
+  @@index([doctorId, active, day])
+}
+
+model Appointment {
+  id        String @id @default(cuid())
+  doctorId  String
+  doctor    Doctor @relation(fields: [doctorId], references: [id])
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+  slotId    String
+  slot      WeeklySlot @relation(fields: [slotId], references: [id])
+  date      String @db.VarChar(10)
+  status    AppointmentStatus @default(SCHEDULED)
+  createdAt DateTime @default(now())
+
+  @@index([doctorId, date, status])
+  @@index([patientId, date])
+}
+
 model Notification {
   id        String   @id @default(cuid())
-  patientId String
-  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId String?
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String @default("report")
   titleAr   String
   messageAr String
   actionId  String?
@@ -132,6 +202,8 @@ model Notification {
 
 model PushToken {
   token     String  @id
-  patientId String
-  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId String?
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -1,8 +1,9 @@
 import { Controller, Get, NotFoundException, Param, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from './common/auth';
+import { signedFileUrl } from './common/signed-url';
 import { PrismaService } from './common/prisma.service';
 
-// Display-only directory (hospitals, labs, doctors), managed by admins via the seed/DB. No booking.
+// Directory includes legacy entries and active registered doctors.
 const toHospital = (h: { id: string; name: string; location: string; phone: string }) => ({ ...h, status: 'linked' });
 
 const toDoctor = (d: any, hospitals: Map<string, any>) => {
@@ -16,7 +17,8 @@ const toDoctor = (d: any, hospitals: Map<string, any>) => {
     department: d.specialty || d.specialtyAr,
     departmentAr: d.specialtyAr,
     phone: d.phone,
-    photo: d.photo ?? undefined,
+    photo: d.photo ? (d.photo.startsWith('avatars/') ? signedFileUrl(d.photo) : d.photo) : undefined,
+    bookable: Boolean(d.userId) && d.status === 'ACTIVE',
     hospitalId: d.hospitalId,
     hospitalName: hospital?.name ?? null,
     hospitalLocation: hospital?.location ?? null,
@@ -53,6 +55,7 @@ export class DirectoryController {
     const doctors = await this.prisma.doctor.findMany({
       where: {
         AND: [
+          { OR: [{ userId: null }, { status: 'ACTIVE' }] },
           search ? { OR: [{ nameAr: { contains: search } }, { name: { contains: search } }] } : {},
           specialty ? { OR: [{ specialtyAr: specialty }, { specialty }] } : {},
         ],
@@ -64,7 +67,7 @@ export class DirectoryController {
   @Get('doctors/:id')
   async doctor(@Param('id') id: string) {
     const d = await this.prisma.doctor.findUnique({ where: { id } });
-    if (!d) throw new NotFoundException('غير موجود');
+    if (!d || (d.userId && d.status !== 'ACTIVE')) throw new NotFoundException('غير موجود');
     const hospitals = new Map((await this.prisma.hospital.findMany()).map(h => [h.id, h]));
     return toDoctor(d, hospitals);
   }

@@ -86,6 +86,7 @@ export default function PushNotificationsBridge() {
 
   useEffect(() => {
     const receivedSubscription = Notifications.addNotificationReceivedListener(() => {
+      void queryClient.invalidateQueries({ queryKey: ['appointments'] });
       void queryClient.invalidateQueries({ queryKey: ['notifications'] });
       void queryClient.invalidateQueries({ queryKey: ['notifications', 'recent'] });
       void queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
@@ -100,7 +101,10 @@ export default function PushNotificationsBridge() {
         void queryClient.invalidateQueries({ queryKey: ['notifications', 'recent'] });
         void queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
 
-        if (notificationId) {
+        if (data.type === 'appointment') {
+          void queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          router.push('/appointments');
+        } else if (notificationId) {
           router.push({
             pathname: '/notification-details',
             params: { id: String(notificationId) },

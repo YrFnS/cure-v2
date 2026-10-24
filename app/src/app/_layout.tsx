@@ -151,6 +151,7 @@ function RootLayoutNav() {
           animation: 'slide_from_left',
         }}
       >
+        <Stack.Screen name="appointments" options={{ title: t.myAppointments }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="reset-password" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

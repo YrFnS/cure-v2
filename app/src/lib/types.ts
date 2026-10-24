@@ -38,26 +38,28 @@ export interface Doctor {
   photo?: string;
   availableDays: string[] | Record<string, string[]>;
   serviceUnit?: string | null;
+  bookable?: boolean;
 }
 
 // Appointment Types
 export interface Appointment {
   id: string;
-  patientId: string;
-  doctorId: string;
-  doctorName: string;
-  doctorNameAr: string;
-  doctorSpecialty: string;
-  doctorSpecialtyAr: string;
-  doctorPhoto: string;
-  doctorPhone?: string | null;
-  department: string;
-  departmentAr: string;
   date: string;
-  time: string;
-  status: 'pending' | 'upcoming' | 'completed' | 'cancelled';
-  notes?: string;
-  location: string;
+  slot: { id: string; day: string; from: string; to: string };
+  status: 'SCHEDULED' | 'OPEN' | 'CLOSED' | 'CANCELLED';
+  createdAt: string;
+  patient: { id: string; name: string; gender: string; age: number | null };
+  doctor: {
+    id: string; name: string; nameAr: string; specialty: string; photoUrl: string | null;
+    hospital: { id: string; name: string } | null;
+  };
+}
+
+export interface AvailableSlot {
+  slotId: string;
+  from: string;
+  to: string;
+  remaining: number;
 }
 
 // Report Types

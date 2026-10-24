@@ -112,6 +112,10 @@ export default function NotificationDetailsScreen() {
       .replace(/(\d{4}-\d{2}-\d{2})/g, '\u200E$1\u200E')}\u200F`;
 
   const handleAction = () => {
+    if (selectedNotification.actionType === 'appointment') {
+      router.push('/appointments');
+      return;
+    }
     if (selectedNotification.actionType === 'report' && selectedNotification.actionId) {
       router.push({
         pathname: '/report-details',
@@ -201,7 +205,7 @@ export default function NotificationDetailsScreen() {
                   style={{ fontFamily: 'Cairo_600SemiBold' }}
                   className="text-white text-lg"
                 >
-                  {t.viewReport}
+                  {selectedNotification.actionType === 'appointment' ? t.myAppointments : t.viewReport}
                 </Text>
                 <View style={{ marginLeft: 8 }}>
                   <ExternalLink size={20} color="#FFFFFF" />

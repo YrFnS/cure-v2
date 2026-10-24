@@ -36,7 +36,7 @@ import type { Hospital } from '@/lib/types';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
   const patient = useAuthStore(s => s.patient);
   const { data: linkedHospitals = [], isLoading } = useQuery<Hospital[]>({
     queryKey: ['linked-hospitals'],
@@ -171,6 +171,14 @@ export default function ProfileScreen() {
             </View>
           </View>
         </FadeInDownView>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/appointments')}
+          className="mx-5 mt-6 bg-cyan-50 dark:bg-cyan-900/30 rounded-2xl p-5"
+        >
+          <Text style={{ fontFamily: 'Cairo_700Bold', textAlign: isRTL ? 'right' : 'left' }} className="text-medical-primary dark:text-cyan-300">{t.myAppointments}</Text>
+        </Pressable>
 
         {/* Personal Information */}
         <FadeInDownView
