@@ -13,7 +13,7 @@ import { PrismaService } from './prisma.service';
 
 export type AuthUser = {
   userId: string;
-  role: 'PATIENT' | 'LAB' | 'ADMIN';
+  role: 'PATIENT' | 'LAB' | 'ADMIN' | 'DOCTOR';
   patientId: string | null;
   verified: boolean;
   labId: string | null;

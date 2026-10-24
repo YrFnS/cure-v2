@@ -15,6 +15,8 @@ import express, { json } from 'express';
 import path from 'node:path';
 import { map } from 'rxjs';
 import { AiService } from './ai/ai.service';
+import { AppointmentsController } from './appointments.controller';
+import { DoctorsController } from './doctors.controller';
 import { AuthController } from './auth.controller';
 import { AuthGuard } from './common/auth';
 import { PrismaService } from './common/prisma.service';
@@ -58,6 +60,8 @@ class ErrorFilter implements ExceptionFilter {
     LabLinkController,
     ReportsController,
     NotificationsController,
+    DoctorsController,
+    AppointmentsController,
     DirectoryController,
   ],
   providers: [PrismaService, WhatsAppService, AiService, AuthGuard],

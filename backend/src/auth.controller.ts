@@ -12,6 +12,7 @@ import {
   Roles,
   verifyPassword,
 } from './common/auth';
+import { clinicNow, requireDate, requireGender, requireText, toDoctorDto } from './common/appointments';
 import { LoginLimiter, OtpStore } from './common/otp';
 import { PrismaService } from './common/prisma.service';
 import { signedFileUrl, verifySignedFile } from './common/signed-url';
@@ -58,6 +59,8 @@ function requirePassword(value: unknown) {
 export class AuthController {
   private readonly otp = new OtpStore();
   private readonly logins = new LoginLimiter();
+  // shortcut: signup state is process-local like OtpStore; persist both before scaling to multiple instances.
+  private readonly doctorSignups = new Map<string, { hash: string; salt: string; expiresAt: number }>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -102,6 +105,50 @@ export class AuthController {
     return { token: await this.openSession(user.id), patient: toPatientDto(user.patient, phone) };
   }
 
+  @Post('auth/doctor/signup/send')
+  async doctorSignupSend(@Body() body: { phone?: string; password?: string }) {
+    const phone = requirePhone(body.phone);
+    const password = requirePassword(body.password);
+    if (await this.prisma.user.findUnique({ where: { phone } })) throw new BadRequestException('Phone already registered');
+    const code = this.otp.issue(`doctor-signup:${phone}`);
+    for (const [key, pending] of this.doctorSignups) {
+      if (pending.expiresAt < Date.now()) this.doctorSignups.delete(key);
+    }
+    this.doctorSignups.set(phone, { ...hashPassword(password), expiresAt: Date.now() + 5 * 60_000 });
+    await this.whatsapp.send(phone, `رمز إنشاء حساب الطبيب في كيور: ${code}\nصالح لمدة 5 دقائق.`);
+    return { sent: true };
+  }
+
+  @Post('auth/doctor/signup/confirm')
+  async doctorSignupConfirm(@Body() body: {
+    phone?: string; code?: string; firstName?: string; lastName?: string; gender?: string;
+    birthDate?: string; specialty?: string; hospitalId?: string;
+  }) {
+    const phone = requirePhone(body.phone);
+    const firstName = requireText(body.firstName, 'firstName', 80);
+    const lastName = requireText(body.lastName, 'lastName', 80);
+    const gender = requireGender(body.gender);
+    const birthDate = requireDate(body.birthDate);
+    if (birthDate > clinicNow().date) throw new BadRequestException('Invalid birth date');
+    const specialty = body.specialty === undefined ? '' : requireText(body.specialty, 'specialty', 191, true);
+    const hospitalId = body.hospitalId === undefined ? null : requireText(body.hospitalId, 'hospitalId');
+    const hospital = hospitalId ? await this.prisma.hospital.findUnique({ where: { id: hospitalId } }) : null;
+    if (hospitalId && !hospital) throw new BadRequestException('Unknown hospital');
+    if (await this.prisma.user.findUnique({ where: { phone } })) throw new BadRequestException('Phone already registered');
+    const pending = this.doctorSignups.get(phone);
+    if (!pending || pending.expiresAt < Date.now()) throw new BadRequestException('Request a new signup code');
+    this.otp.consume(`doctor-signup:${phone}`, body.code);
+    this.doctorSignups.delete(phone);
+    const user = await this.prisma.user.create({
+      data: { phone, role: 'DOCTOR', passwordHash: pending.hash, passwordSalt: pending.salt,
+        doctor: { create: { firstName, lastName, name: `${firstName} ${lastName}`, nameAr: `${firstName} ${lastName}`,
+          gender, birthDate, specialty, hospitalId, phone } } },
+      include: { doctor: true },
+    });
+    return { token: await this.openSession(user.id), role: user.role,
+      user: { id: user.id, phone, role: user.role }, doctor: toDoctorDto(user.doctor, hospital) };
+  }
+
   // Patients log in by phone; lab and admin users by username.
   @Post('auth/login')
   async login(@Body() body: { identifier?: string; phone?: string; password?: string }) {
@@ -128,7 +175,7 @@ export class AuthController {
 
   @Post('auth/logout')
   @UseGuards(AuthGuard)
-  @Roles('PATIENT', 'LAB', 'ADMIN')
+  @Roles('PATIENT', 'LAB', 'ADMIN', 'DOCTOR')
   @AllowUnverified()
   async logout(@Headers('authorization') authorization: string) {
     const token = String(authorization ?? '').split(' ')[1] ?? '';
@@ -161,10 +208,11 @@ export class AuthController {
 
   @Get('users/me')
   @UseGuards(AuthGuard)
+  @Roles('PATIENT', 'LAB', 'ADMIN', 'DOCTOR')
   @AllowUnverified()
   async me(@CurrentUser() user: AuthUser) {
     const row = await this.prisma.user.findUniqueOrThrow({ where: { id: user.userId }, include: { patient: true } });
-    return toPatientDto(row.patient, row.phone);
+    return row.patient ? { ...toPatientDto(row.patient, row.phone), role: row.role } : { id: row.id, phone: row.phone, role: row.role };
   }
 
   // Profile photo only; identity fields come from the ID card.
@@ -185,7 +233,7 @@ export class AuthController {
   }
 
   // Private files behind an expiring signed link (only avatars today). No session needed:
-  // the signature is the permission, and it is only issued to the photo's owner.
+  // the signature is the permission, issued to authorized profile/directory callers.
   @Get('files')
   async file(@Query('f') file: string, @Query('exp') exp: string, @Query('sig') sig: string, @Res() res: Response) {
     const name = String(file ?? '');
