@@ -1,1 +1,4 @@
-{ "CFBundleDisplayName": "كيور دكتور", "app_name": "كيور دكتور" }
+{
+  "ios": { "CFBundleDisplayName": "كيور دكتور" },
+  "android": { "app_name": "كيور دكتور" }
+}
