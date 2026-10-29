@@ -75,14 +75,26 @@ export class AuthController {
     return token;
   }
 
+  private async sendCode(key: string, phone: string, message: (code: string) => string) {
+    const code = this.otp.issue(key);
+    try {
+      await this.whatsapp.send(phone, message(code));
+    } catch (error) {
+      this.otp.cancel(key);
+      throw error;
+    }
+  }
+
   @Post('auth/signup/send')
   async signupSend(@Body() body: { phone?: string }) {
     const phone = requirePhone(body.phone);
-    if (await this.prisma.user.findUnique({ where: { phone } })) {
-      throw new BadRequestException('هذا الرقم مسجل مسبقاً، سجّل الدخول');
+    const existing = await this.prisma.user.findUnique({ where: { phone } });
+    if (existing) {
+      throw new BadRequestException(existing.role === 'DOCTOR'
+        ? 'هذا الرقم مسجل كحساب طبيب في Cure Doctor. استخدم رقماً آخر لحساب المريض.'
+        : 'هذا الرقم مسجل مسبقاً، سجّل الدخول');
     }
-    const code = this.otp.issue(`signup:${phone}`);
-    await this.whatsapp.send(phone, `رمز إنشاء حساب كيور: ${code}\nصالح لمدة 5 دقائق.`);
+    await this.sendCode(`signup:${phone}`, phone, code => `رمز إنشاء حساب كيور: ${code}\nصالح لمدة 5 دقائق.`);
     return { message: 'Code sent by WhatsApp' };
   }
 
@@ -110,12 +122,11 @@ export class AuthController {
     const phone = requirePhone(body.phone);
     const password = requirePassword(body.password);
     if (await this.prisma.user.findUnique({ where: { phone } })) throw new BadRequestException('Phone already registered');
-    const code = this.otp.issue(`doctor-signup:${phone}`);
     for (const [key, pending] of this.doctorSignups) {
       if (pending.expiresAt < Date.now()) this.doctorSignups.delete(key);
     }
     this.doctorSignups.set(phone, { ...hashPassword(password), expiresAt: Date.now() + 5 * 60_000 });
-    await this.whatsapp.send(phone, `رمز إنشاء حساب الطبيب في كيور: ${code}\nصالح لمدة 5 دقائق.`);
+    await this.sendCode(`doctor-signup:${phone}`, phone, code => `رمز إنشاء حساب الطبيب في كيور: ${code}\nصالح لمدة 5 دقائق.`);
     return { sent: true };
   }
 
@@ -189,8 +200,7 @@ export class AuthController {
     // Same answer whether or not the number is registered.
     const response = { message: 'If this number is registered, a code has been sent by WhatsApp.' };
     if (!(await this.prisma.user.findUnique({ where: { phone } }))) return response;
-    const code = this.otp.issue(`reset:${phone}`);
-    await this.whatsapp.send(phone, `رمز استعادة كلمة المرور: ${code}\nصالح لمدة 5 دقائق.`);
+    await this.sendCode(`reset:${phone}`, phone, code => `رمز استعادة كلمة المرور: ${code}\nصالح لمدة 5 دقائق.`);
     return response;
   }
 

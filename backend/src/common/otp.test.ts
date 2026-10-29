@@ -24,11 +24,21 @@ test('otp: expired code is rejected', () => {
   assert.throws(() => store.consume('k', code, 6 * 60 * 1000));
 });
 
-test('otp: send limit is 3 per 15 minutes', () => {
+test('otp: send limit is 3 per 5 minutes', () => {
   const store = new OtpStore();
   for (let i = 0; i < 3; i++) store.issue('k', 1000);
   assert.throws(() => store.issue('k', 1000));
-  store.issue('k', 1000 + 16 * 60 * 1000);
+  store.issue('k', 1000 + 6 * 60 * 1000);
+});
+
+test('otp: a failed send does not use up the limit', () => {
+  const store = new OtpStore();
+  for (let i = 0; i < 5; i++) {
+    store.issue('k', 1000);
+    store.cancel('k');
+  }
+  for (let i = 0; i < 3; i++) store.issue('k', 1000);
+  assert.throws(() => store.issue('k', 1000), /بعد 5 دقيقة/);
 });
 
 test('phone normalization', () => {

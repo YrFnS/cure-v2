@@ -3,7 +3,7 @@ import { createHash, randomInt } from 'node:crypto';
 
 const CODE_TTL_MS = 5 * 60 * 1000;
 const MAX_WRONG = 5;
-const SEND_WINDOW_MS = 15 * 60 * 1000;
+const SEND_WINDOW_MS = 5 * 60 * 1000;
 const MAX_SENDS = 3;
 
 type Pending = { hash: string; expiresAt: number; wrong: number };
@@ -20,12 +20,21 @@ export class OtpStore {
 
   issue(key: string, now = Date.now()): string {
     const recent = (this.sends.get(key) ?? []).filter(ts => now - ts < SEND_WINDOW_MS);
-    if (recent.length >= MAX_SENDS) throw new BadRequestException('طلبات كثيرة، حاول مجدداً بعد 15 دقيقة');
+    if (recent.length >= MAX_SENDS) {
+      const minutes = Math.ceil((recent[0] + SEND_WINDOW_MS - now) / 60_000);
+      throw new HttpException(`طلبات كثيرة، حاول مجدداً بعد ${minutes} دقيقة`, HttpStatus.TOO_MANY_REQUESTS);
+    }
     this.sends.set(key, [...recent, now]);
 
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
     this.pending.set(key, { hash: hashCode(code), expiresAt: now + CODE_TTL_MS, wrong: 0 });
     return code;
+  }
+
+  // A code that never reached the phone must not use up a send.
+  cancel(key: string) {
+    this.pending.delete(key);
+    this.sends.set(key, (this.sends.get(key) ?? []).slice(0, -1));
   }
 
   consume(key: string, code: unknown, now = Date.now()) {
