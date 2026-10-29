@@ -9,6 +9,7 @@ import { Camera, IdCard, LogOut, ShieldCheck, X } from 'lucide-react-native';
 import { useAuthStore } from '@/lib/auth-store';
 import { useTranslation } from '@/lib/settings-store';
 import { getIdCheck, verifyNationalId } from '@/lib/api';
+import { errorText } from '@/lib/error-text';
 
 type Side = 'front' | 'back';
 type Shot = { uri: string; dataUrl: string };
@@ -63,7 +64,7 @@ export default function VerifyIdScreen() {
       if (result.status === 'verified') updatePatient(result.patient);
       else queryClient.setQueryData(['id-check'], result);
     },
-    onError: e => setError(e instanceof Error ? e.message : String(e)),
+    onError: e => setError(errorText(e)),
   });
   const reviewing = check.data?.status === 'pending';
   const busy = verify.isPending || reviewing;

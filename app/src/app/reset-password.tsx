@@ -16,6 +16,7 @@ import { Eye, EyeOff, KeyRound } from 'lucide-react-native';
 import { useAuthStore } from '@/lib/auth-store';
 import { useSettingsStore, useTranslation } from '@/lib/settings-store';
 import { resetPasswordWithOtp, sendPasswordResetOtp } from '@/lib/api';
+import { errorText } from '@/lib/error-text';
 
 function normalizeArabicDigits(value: string) {
   return value
@@ -29,11 +30,6 @@ function normalizeIraqiPhone(value: string): string {
   if (digits.startsWith('964') && digits.length >= 12) return `0${digits.slice(3, 13)}`;
   if (digits.startsWith('7') && digits.length === 10) return `0${digits}`;
   return digits.slice(0, 11);
-}
-
-function errorText(error: unknown, fallback: string) {
-  const message = error instanceof Error ? error.message : '';
-  return message.replace(/^HTTP \d+ - /, '') || fallback;
 }
 
 export default function ResetPasswordScreen() {

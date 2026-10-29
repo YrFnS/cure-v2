@@ -24,6 +24,7 @@ import {
   Cairo_600SemiBold,
   Cairo_700Bold,
 } from '@expo-google-fonts/cairo';
+import { errorText } from '@/lib/error-text';
 
 type RegisterForm = {
   phone: string;
@@ -164,7 +165,7 @@ export default function LoginScreen() {
       const loginResult = await login(normalizedPhone, password, false);
       if (!loginResult.success) setError(loginResult.error ?? t.connectionFailed);
     } catch (registerError) {
-      setError(registerError instanceof Error ? registerError.message : t.accountCreationFailed);
+      setError(errorText(registerError, t.accountCreationFailed));
     } finally {
       setIsRegisterLoading(false);
     }

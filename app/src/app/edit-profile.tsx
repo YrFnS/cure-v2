@@ -26,6 +26,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { updateProfile } from '@/lib/api';
 import { useSettingsStore, useTranslation } from '@/lib/settings-store';
 import { resolveAssetUrl } from '@/lib/api/api';
+import { errorText } from '@/lib/error-text';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -71,7 +72,7 @@ export default function EditProfileScreen() {
       showAlert(t.done, t.photoUpdated);
       router.back();
     } catch (error) {
-      showAlert(t.errorTitle, error instanceof Error ? error.message : t.photoUpdateFailed);
+      showAlert(t.errorTitle, errorText(error, t.photoUpdateFailed));
     } finally {
       setIsSaving(false);
     }

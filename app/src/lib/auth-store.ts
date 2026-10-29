@@ -7,8 +7,10 @@ import {
   fetchProfile,
   getToken,
   login,
+  logout as endSession,
   storeToken,
 } from './api';
+import { errorText } from './error-text';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -225,6 +227,19 @@ export const useAuthStore = create<AuthState>()(
             };
           }
 
+          // One phone is one account; a doctor's number cannot open the patient app (it has no patient record).
+          if (result?.role && result.role !== 'PATIENT') {
+            void endSession(tokenFromLogin).catch(() => {});
+            set({ isLoading: false });
+            return {
+              success: false,
+              error:
+                result.role === 'DOCTOR'
+                  ? 'هذا الرقم مسجل كحساب طبيب. استخدم تطبيق Cure Doctor لتسجيل الدخول.'
+                  : 'هذا الحساب ليس حساب مريض.',
+            };
+          }
+
           await storeToken(tokenFromLogin);
 
           const normalizedFromLogin = normalizePatient(patientFromLogin);
@@ -266,7 +281,7 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: false });
           return {
             success: false,
-            error: error instanceof Error ? error.message : 'Login failed',
+            error: errorText(error, 'Login failed'),
           };
         }
       },

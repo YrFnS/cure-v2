@@ -5,6 +5,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { RefreshCw, Share2 } from 'lucide-react-native';
 import { useTranslation } from '@/lib/settings-store';
 import { createLabToken } from '@/lib/api';
+import { errorText } from '@/lib/error-text';
 
 // The patient shares a single-use upload link with the lab (QR or any messaging app).
 // The link holds only a random code — no patient ID, no name.
@@ -38,7 +39,7 @@ export default function LabCodeScreen() {
       >
         {token.isError ? (
           <Text style={{ fontFamily: 'Cairo_600SemiBold' }} className="text-red-600 text-center">
-            {token.error instanceof Error ? token.error.message : String(token.error)}
+            {errorText(token.error)}
           </Text>
         ) : !url ? (
           <ActivityIndicator size="large" color="#0891B2" style={{ marginVertical: 80 }} />

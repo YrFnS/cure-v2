@@ -31,6 +31,7 @@ import { useAuthStore } from '@/lib/auth-store';
 import type { ReportType } from '@/lib/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { askReportQuestion, getReportById, getToken } from '@/lib/api';
+import { errorText } from '@/lib/error-text';
 
 // AI summary and suggested questions are switched off for now (owner, 2026-10-17).
 // Turn back on together with the backend's AI_INSIGHTS=on.
@@ -676,7 +677,7 @@ export default function ReportDetailsScreen() {
                   </Text>
                 ) : ask.isError ? (
                   <Text style={{ fontFamily: 'Cairo_500Medium' }} className="text-red-600 text-right">
-                    {ask.error instanceof Error ? ask.error.message : String(ask.error)}
+                    {errorText(ask.error)}
                   </Text>
                 ) : (
                   <ActivityIndicator size="small" color="#0891B2" />
