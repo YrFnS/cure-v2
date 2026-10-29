@@ -1,7 +1,10 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { TextInput, View } from "react-native";
 import { useTranslation } from "@/lib/settings-store";
+import { cn } from "@/lib/cn";
+import { T } from "@/components/ui";
 
+// One real input under six boxes: typing, backspace, paste and SMS autofill all behave natively.
 export function CodeInput({
   code,
   onChange,
@@ -11,50 +14,55 @@ export function CodeInput({
   onChange: (value: string) => void;
   disabled: boolean;
 }) {
-  const refs = useRef<(TextInput | null)[]>([]);
   const { t } = useTranslation();
+  const [focused, setFocused] = useState<boolean>(false);
   return (
     <View
       className="flex-row justify-center gap-2"
       style={{ direction: "ltr" }}
     >
       {Array.from({ length: 6 }, (_, index) => (
-        <TextInput
+        <View
           key={index}
-          ref={(ref) => {
-            refs.current[index] = ref;
-          }}
-          accessibilityLabel={`${t.verify} ${index + 1}`}
-          editable={!disabled}
-          keyboardType="number-pad"
-          autoComplete={index === 0 ? "sms-otp" : "off"}
-          textContentType={index === 0 ? "oneTimeCode" : "none"}
-          selectTextOnFocus
-          maxLength={6}
-          value={code[index] === " " ? "" : (code[index] ?? "")}
-          className="h-14 min-w-0 flex-1 rounded-xl border border-primary bg-white text-center font-bold text-xl text-indigo"
+          className={cn(
+            "h-14 min-w-0 flex-1 items-center justify-center rounded-xl border border-primary bg-white",
+            focused && index === Math.min(code.length, 5) && "border-2",
+          )}
           style={{ maxWidth: 52 }}
-          onChangeText={(value) => {
-            const digits = value.replace(/[^0-9]/g, "");
-            const next = code.padEnd(6, " ").split("");
-            if (!digits) next[index] = " ";
-            else
-              for (let i = 0; i < digits.length && index + i < 6; i++)
-                next[index + i] = digits[i];
-            onChange(next.join(""));
-            if (digits)
-              refs.current[Math.min(index + digits.length, 5)]?.focus();
-          }}
-          onKeyPress={(event) => {
-            if (
-              event.nativeEvent.key === "Backspace" &&
-              (!code[index] || code[index] === " ") &&
-              index > 0
-            )
-              refs.current[index - 1]?.focus();
-          }}
-        />
+        >
+          <T className="text-center font-bold text-xl text-indigo">
+            {code[index] ?? ""}
+          </T>
+        </View>
       ))}
+      <TextInput
+        accessibilityLabel={t.verify}
+        editable={!disabled}
+        autoFocus
+        keyboardType="number-pad"
+        autoComplete="sms-otp"
+        textContentType="oneTimeCode"
+        caretHidden
+        value={code}
+        onChangeText={(value) =>
+          onChange(
+            value
+              .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+              .replace(/[^0-9]/g, "")
+              .slice(0, 6),
+          )
+        }
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          opacity: 0,
+        }}
+      />
     </View>
   );
 }

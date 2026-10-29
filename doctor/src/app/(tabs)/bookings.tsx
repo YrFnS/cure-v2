@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
-import { CalendarDays, Clock3, Trash2, UsersRound } from "lucide-react-native";
+import {
+  CalendarDays,
+  Clock3,
+  Pencil,
+  Trash2,
+  UsersRound,
+} from "lucide-react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { days } from "@/lib/types";
@@ -32,6 +38,7 @@ export default function Bookings() {
   const [to, setTo] = useState<string>("12:00");
   const [max, setMax] = useState<string>("10");
   const [validation, setValidation] = useState<string | null>(null);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
   const [saved, setSaved] = useState<boolean>(false);
   const [confirm, setConfirm] = useState<boolean>(false);
   const [discard, setDiscard] = useState<boolean>(false);
@@ -52,22 +59,30 @@ export default function Bookings() {
     onSuccess: (data) => {
       client.setQueryData(["schedule"], data);
       setDraft(null);
+      setEditIndex(null);
       setConfirm(false);
       setSaved(true);
       setValidation(null);
     },
   });
   function addSlot() {
-    const next = [
-      ...slots,
-      { day, from: from.trim(), to: to.trim(), maxAppointments: Number(max) },
-    ];
+    const slot = {
+      day,
+      from: from.trim(),
+      to: to.trim(),
+      maxAppointments: Number(max),
+    };
+    const next =
+      editIndex === null
+        ? [...slots, slot]
+        : slots.map((current, i) => (i === editIndex ? slot : current));
     const error = scheduleError(next);
     if (error) {
       setValidation(t[error]);
       return;
     }
     setDraft(next);
+    setEditIndex(null);
     setValidation(null);
     setSaved(false);
     mutation.reset();
@@ -112,7 +127,9 @@ export default function Bookings() {
             <Card className="gap-4">
               <Row>
                 <CalendarDays size={22} color="#5c85d9" />
-                <T className="font-bold text-lg">{t.addSlot}</T>
+                <T className="font-bold text-lg">
+                  {editIndex === null ? t.addSlot : t.editSlot}
+                </T>
               </Row>
               <T className="text-sm">{t.day}</T>
               <ScrollView
@@ -169,11 +186,21 @@ export default function Bookings() {
               />
               <ErrorMessage message={validation} />
               <Button
-                title={t.addSlot}
+                title={editIndex === null ? t.addSlot : t.updateSlot}
                 variant="secondary"
                 disabled={mutation.isPending}
                 onPress={addSlot}
               />
+              {editIndex !== null && (
+                <Button
+                  title={t.cancel}
+                  variant="ghost"
+                  onPress={() => {
+                    setEditIndex(null);
+                    setValidation(null);
+                  }}
+                />
+              )}
             </Card>
           )}
           {slots.length === 0 && (
@@ -214,6 +241,28 @@ export default function Bookings() {
                       </T>
                       {editing && (
                         <View>
+                          <Pencil
+                            color="#5c85d9"
+                            size={18}
+                            style={{ alignSelf: "center" }}
+                          />
+                          <Button
+                            title={t.editSlotShort}
+                            variant="ghost"
+                            disabled={mutation.isPending}
+                            onPress={() => {
+                              setDay(slot.day);
+                              setFrom(slot.from);
+                              setTo(slot.to);
+                              setMax(String(slot.maxAppointments));
+                              setEditIndex(index);
+                              setValidation(null);
+                            }}
+                          />
+                        </View>
+                      )}
+                      {editing && (
+                        <View>
                           <Trash2
                             color="#D32F2F"
                             size={18}
@@ -225,6 +274,7 @@ export default function Bookings() {
                             disabled={mutation.isPending}
                             onPress={() => {
                               setDraft(slots.filter((_, i) => i !== index));
+                              setEditIndex(null);
                               setSaved(false);
                               mutation.reset();
                             }}
@@ -290,6 +340,7 @@ export default function Bookings() {
           variant="danger"
           onPress={() => {
             setDraft(null);
+            setEditIndex(null);
             setValidation(null);
             setDiscard(false);
             mutation.reset();

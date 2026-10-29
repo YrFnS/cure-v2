@@ -21,6 +21,7 @@ import {
   T,
 } from "@/components/ui";
 import { CodeInput } from "@/components/code-input";
+import { DateField } from "@/components/date-field";
 
 type Draft = {
   firstName: string;
@@ -176,15 +177,11 @@ export default function Register() {
           autoComplete="new-password"
           ltr
         />
-        <Field
-          label={`${t.birthDate} (YYYY-MM-DD)`}
+        <DateField
+          label={t.birthDate}
           value={draft.birthDate}
-          onChangeText={(v) => field("birthDate", v)}
-          editable={!pending}
-          placeholder="1985-06-15"
-          maxLength={10}
-          keyboardType="numbers-and-punctuation"
-          ltr
+          onChange={(v) => field("birthDate", v)}
+          disabled={pending}
         />
         <T className="font-medium text-sm">{t.gender}</T>
         <Row>

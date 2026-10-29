@@ -12,6 +12,7 @@ const config: ExpoConfig = {
   icon: "./assets/images/logo.png",
   ios: {
     bundleIdentifier: "com.e2next.curedoctor",
+    buildNumber: "2",
     supportsTablet: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
@@ -19,7 +20,7 @@ const config: ExpoConfig = {
       CFBundleLocalizations: ["ar", "en"],
     },
   },
-  android: { package: "com.e2next.curedoctor" },
+  android: { package: "com.e2next.curedoctor", versionCode: 2 },
   web: {
     bundler: "metro",
     output: "single",
