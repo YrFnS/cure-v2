@@ -238,8 +238,10 @@ export default function HomeScreen() {
                   {t.umn}
                 </Text>
                 <Text
-                  style={{ fontFamily: 'Cairo_700Bold', fontSize: 42, letterSpacing: 4 }}
+                  style={{ fontFamily: 'Cairo_700Bold', fontSize: 26, letterSpacing: 1 }}
                   className="text-white"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
                   {patient?.mrn || '—'}
                 </Text>
